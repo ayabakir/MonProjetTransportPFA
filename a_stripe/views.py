@@ -2,7 +2,7 @@
 import stripe
 import os # <--- AJOUT IMPORTANT
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from transport.models import Commande
 
@@ -23,7 +23,7 @@ def create_checkout_session(request, commande_id):
                         'product_data': {
                             'name': f'Paiement pour commande #{commande.id}',
                         },
-                        'unit_amount': int(commande.prix_total * 100),
+                        'unit_amount': int(commande.montant_total * 100),
                     },
                     'quantity': 1,
                 },
