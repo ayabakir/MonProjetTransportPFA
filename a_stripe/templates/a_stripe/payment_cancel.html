@@ -1,0 +1,17 @@
+{% extends "a_stripe/base_stripe.html" %}
+
+{% block title %}Paiement Annulé{% endblock %}
+
+{% block content %}
+    <div class="status-icon text-warning">
+        <i class="bi bi-exclamation-circle-fill"></i>
+    </div>
+    <h1 class="h2 mb-3">Paiement Annulé</h1>
+    <p class="lead text-muted mb-4">
+        Vous avez annulé le processus de paiement. Votre commande est toujours en attente.
+        Vous pouvez la retrouver dans votre tableau de bord pour réessayer de payer.
+    </p>
+    <a href="{% url 'transport:dashboard_client' %}" class="btn btn-secondary btn-lg">
+        <i class="bi bi-arrow-left me-2"></i>Retour au Tableau de Bord
+    </a>
+{% endblock %}

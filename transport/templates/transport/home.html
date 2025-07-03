@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transport Premium | Services Logistiques au Maroc</title>
+    <!-- Bootstrap CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --secondary: #0d47a1;
+            --accent: #ff6d00;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --morocco-red: #C1272D;
+            --morocco-green: #006233;
+            --gold: #D4AF37;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            color: #333;
+            background-color: #f8fafc;
+            padding-top: 80px;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #f8fafc 0%, #e6f0ff 100%);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, var(--morocco-green), var(--primary));
+            border-bottom: 3px solid var(--gold);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+       .hero-section {
+            background: linear-gradient(rgba(0, 98, 51, 0.9), rgba(26, 115, 232, 0.9)), url('https://images.unsplash.com/photo-1603138461440-26891c0acb4c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            padding: 120px 0 80px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+        }
+        
+       .hero-section:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1556740734-9f9ca6f6a98d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
+            opacity: 0.2;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            height: 100%;
+            background: white;
+            position: relative;
+            border-top: 4px solid var(--morocco-green);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--morocco-green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .testimonial-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--gold);
+            background: white;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+        
+        .testimonial-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            color: var(--morocco-green);
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--morocco-green));
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 7px 20px rgba(26, 115, 232, 0.4);
+        }
+        
+        .btn-outline-primary {
+            border-color: var(--primary);
+            color: var(--primary);
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, var(--primary), var(--morocco-green));
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(26, 115, 232, 0.4);
+        }
+        
+        .stats-container {
+            background: linear-gradient(135deg, var(--morocco-green), var(--primary));
+            color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .stats-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
+            opacity: 0.15;
+        }
+        
+        .cta-section {
+            background: linear-gradient(rgba(0, 98, 51, 0.95), rgba(13, 71, 161, 0.95)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+        
+        .cta-section:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
+            opacity: 0.2;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #003819, #00170a);
+            color: white;
+            position: relative;
+            clip-path: polygon(0 20px, 100% 0, 100% 100%, 0 100%);
+            padding-top: 80px;
+        }
+        
+        .footer-wave {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23f8fafc' fill-opacity='1' d='M0,160L60,138.7C120,117,240,75,360,74.7C480,75,600,117,720,128C840,139,960,117,1080,101.3C1200,85,1320,75,1380,69.3L1440,64L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") center/cover;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            background: var(--gold);
+            transform: translateY(-3px) rotate(5deg);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .morocco-pattern {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background-image: 
+                radial-gradient(circle at 30% 30%, var(--gold) 3px, transparent 3px),
+                radial-gradient(circle at 70% 30%, var(--gold) 3px, transparent 3px),
+                radial-gradient(circle at 50% 70%, var(--gold) 3px, transparent 3px);
+            background-size: 50px 50px;
+            opacity: 0.1;
+            z-index: 1;
+        }
+        
+        .card-hover-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 15px;
+        }
+        
+        .feature-card:hover .card-hover-glow {
+            opacity: 1;
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 98, 51, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 98, 51, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 98, 51, 0); }
+        }
+        
+        .map-container {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            height: 350px;
+            background-color: #e9ecef;
+            position: relative;
+        }
+        
+        .map-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .ribbon {
+            position: absolute;
+            top: 20px;
+            right: -40px;
+            padding: 10px 40px;
+            background: linear-gradient(45deg, var(--morocco-red), var(--accent));
+            color: white;
+            font-weight: bold;
+            transform: rotate(45deg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top py-3">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-truck-fast me-2"></i>TransportPremium<span class="text-warning">.ma</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item mx-1">
+                        <a class="nav-link active" aria-current="page" href="#">Accueil</a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link" href="#services">Services</a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link" href="#about">À Propos</a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link" href="#testimonials">Témoignages</a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="nav-link" href="{% url 'transport:signup_client' %}">Inscription</a>
+                    </li>
+                    <li class="nav-item mx-1">
+                        <a class="btn btn-outline-light rounded-pill px-4 pulse" href="{% url 'transport:login' %}">Connexion</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="morocco-pattern"></div>
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-7 hero-content">
+                        <h1 class="display-3 fw-bold mb-4 animate__animated animate__fadeInDown">Excellence Logistique au Maroc</h1>
+                        <p class="lead mb-5 animate__animated animate__fadeIn animate__delay-1s">Solutions de transport premium entre villes marocaines avec rapidité, sécurité et efficacité exceptionnelle.</p>
+                        <div class="d-flex flex-wrap gap-3 animate__animated animate__fadeInUp animate__delay-1s">
+                            <a href="{% url 'transport:signup_client' %}" class="btn btn-warning btn-lg px-4 py-3 rounded-pill fw-bold">
+                                <i class="fas fa-paper-plane me-2"></i>Demander un Devis
+                            </a>
+                            <a href="#services" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill">
+                                <i class="fas fa-arrow-circle-down me-2"></i>Nos Services
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 d-none d-lg-block">
+                        <div class="position-relative floating">
+                            <div class="ribbon">
+                                <i class="fas fa-star me-2"></i>N°1 au Maroc
+                            </div>
+                            <div class="bg-white p-4 rounded-3 shadow-lg position-absolute" style="top: 20px; left: -30px; transform: rotate(-5deg); width: 300px;">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                        <i class="fas fa-shipping-fast"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Livraison Express</h6>
+                                        <small class="text-muted">Délai garanti</small>
+                                    </div>
+                                </div>
+                                <p class="mb-0">Livraison en 24h pour toute commande avant 16h</p>
+                            </div>
+                            
+                            <div class="bg-white p-4 rounded-3 shadow-lg position-absolute" style="top: 150px; right: -30px; transform: rotate(3deg); width: 300px;">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-success text-white rounded-circle p-2 me-3">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Suivi en Temps Réel</h6>
+                                        <small class="text-muted">Localisation précise</small>
+                                    </div>
+                                </div>
+                                <p class="mb-0">Suivez votre colis à chaque étape du trajet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="py-5">
+            <div class="container">
+                <div class="stats-container p-4">
+                    <div class="row text-center position-relative">
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <h2 class="display-4 fw-bold">25K+</h2>
+                            <p class="mb-0">Livraisons mensuelles</p>
+                        </div>
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <h2 class="display-4 fw-bold">99%</h2>
+                            <p class="mb-0">Taux de satisfaction</p>
+                        </div>
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <h2 class="display-4 fw-bold">300+</h2>
+                            <p class="mb-0">Véhicules modernes</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h2 class="display-4 fw-bold">24/7</h2>
+                            <p class="mb-0">Support client</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="py-7 bg-light">
+            <div class="container">
+                <div class="text-center mb-7">
+                    <h2 class="section-title display-5 fw-bold">Nos Services Premium</h2>
+                    <p class="lead mx-auto" style="max-width: 700px;">Des solutions logistiques sur mesure pour répondre à tous vos besoins de transport au Maroc</p>
+                </div>
+                
+                <div class="row g-5">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-hover-glow"></div>
+                            <div class="card-body p-4 text-center">
+                                <div class="feature-icon">
+                                    <i class="fas fa-truck text-white fa-2x"></i>
+                                </div>
+                                <h3 class="card-title">Transport National</h3>
+                                <p class="card-text">Nos itinéraires sont parfaitement choisis pour une livraison optimale entre toutes les villes marocaines.</p>
+                                <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">
+                                    En savoir plus <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-hover-glow"></div>
+                            <div class="card-body p-4 text-center">
+                                <div class="feature-icon">
+                                    <i class="fas fa-shipping-fast text-white fa-2x"></i>
+                                </div>
+                                <h3 class="card-title">Livraison Express</h3>
+                                <p class="card-text">Service prioritaire pour les envois urgents avec garantie de délai et suivi en temps réel.</p>
+                                <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">
+                                    En savoir plus <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-hover-glow"></div>
+                            <div class="card-body p-4 text-center">
+                                <div class="feature-icon">
+                                    <i class="fas fa-warehouse text-white fa-2x"></i>
+                                </div>
+                                <h3 class="card-title">Stockage & Logistique</h3>
+                                <p class="card-text">Solutions de stockage sécurisées à Rabat, Casablanca et Marrakech avec gestion d'inventaire.</p>
+                                <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">
+                                    En savoir plus <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-hover-glow"></div>
+                            <div class="card-body p-4 text-center">
+                                <div class="feature-icon">
+                                    <i class="fas fa-box text-white fa-2x"></i>
+                                </div>
+                                <h3 class="card-title">Transport de Colis</h3>
+                                <p class="card-text">Service spécialisé pour les petits et moyens colis avec traitement personnalisé.</p>
+                                <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">
+                                    En savoir plus <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-hover-glow"></div>
+                            <div class="card-body p-4 text-center">
+                                <div class="feature-icon">
+                                    <i class="fas fa-temperature-low text-white fa-2x"></i>
+                                </div>
+                                <h3 class="card-title">Transport Réfrigéré</h3>
+                                <p class="card-text">Chaîne du froid garantie pour vos produits pharmaceutiques et alimentaires sensibles.</p>
+                                <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">
+                                    En savoir plus <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card card h-100">
+                            <div class="card-hover-glow"></div>
+                            <div class="card-body p-4 text-center">
+                                <div class="feature-icon">
+                                    <i class="fas fa-boxes text-white fa-2x"></i>
+                                </div>
+                                <h3 class="card-title">Optimisation Logistique</h3>
+                                <p class="card-text">Analyse et optimisation de vos flux logistiques pour réduire les coûts et délais.</p>
+                                <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">
+                                    En savoir plus <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-7">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 mb-5 mb-lg-0">
+                        <div class="position-relative">
+                            <div class="ribbon" style="top: 40px; right: -50px; background: linear-gradient(45deg, var(--morocco-green), var(--primary));">
+                                <i class="fas fa-award me-2"></i>Depuis 2008
+                            </div>
+                            <img src="https://images.unsplash.com/photo-1566576721346-d4a3b4eaeb55?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="img-fluid rounded-3 shadow-lg" alt="Notre équipe">
+                            <div class="position-absolute bottom-0 start-0 bg-primary text-white p-4 rounded-end" style="transform: translateY(50%);">
+                                <h4 class="mb-0">15 ans d'expérience</h4>
+                                <p class="mb-0">dans le transport au Maroc</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h2 class="section-title display-5 fw-bold mb-4">Pourquoi nous choisir ?</h2>
+                        <p class="lead mb-4">TransportPremium est le leader marocain des solutions logistiques. Nous sommes votre partenaire stratégique pour une chaîne d'approvisionnement efficace et fiable.</p>
+                        
+                        <div class="d-flex mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle p-3 me-4">
+                                    <i class="fas fa-check fa-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5>Technologie de pointe</h5>
+                                <p class="mb-0">Plateforme digitale intuitive avec suivi GPS en temps réel et outils d'analyse avancés.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle p-3 me-4">
+                                    <i class="fas fa-check fa-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5>Équipe dédiée</h5>
+                                <p class="mb-0">Professionnels expérimentés disponibles 24/7 pour répondre à vos besoins spécifiques.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle p-3 me-4">
+                                    <i class="fas fa-check fa-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5>Engagement qualité</h5>
+                                <p class="mb-0">Certifications internationales et processus qualité stricts garantissant un service d'excellence.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-5">
+                            <a href="#" class="btn btn-primary btn-lg px-5 py-3">
+                                <i class="fas fa-book me-2"></i>Télécharger notre Brochure
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="py-7 bg-light">
+            <div class="container">
+                <div class="text-center mb-7">
+                    <h2 class="section-title display-5 fw-bold">Ce que disent nos clients</h2>
+                    <p class="lead mx-auto" style="max-width: 700px;">Découvrez les témoignages de nos clients satisfaits qui nous font confiance au quotidien</p>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="testimonial-card card h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-4">
+                                    <img src="https://randomuser.me/api/portraits/women/45.jpg" class="testimonial-img me-3" alt="Client">
+                                    <div>
+                                        <h5 class="mb-0">Khadija El Amrani</h5>
+                                        <small class="text-muted">Directrice Logistique, TechMaroc</small>
+                                    </div>
+                                </div>
+                                <p class="mb-0">"Leur système de suivi en temps réel a révolutionné notre gestion logistique. Plus de 30% de gain de temps sur nos opérations au Maroc."</p>
+                                <div class="mt-3 text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="testimonial-card card h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-4">
+                                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="testimonial-img me-3" alt="Client">
+                                    <div>
+                                        <h5 class="mb-0">Mehdi Benbrahim</h5>
+                                        <small class="text-muted">PDG, AgriMaroc</small>
+                                    </div>
+                                </div>
+                                <p class="mb-0">"Leur service réfrigéré a sauvé notre business. Délais respectés à 99% et température constante garantie entre Agadir et Casablanca. Exceptionnel !"</p>
+                                <div class="mt-3 text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="testimonial-card card h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-4">
+                                    <img src="https://randomuser.me/api/portraits/women/68.jpg" class="testimonial-img me-3" alt="Client">
+                                    <div>
+                                        <h5 class="mb-0">Amina Belhaj</h5>
+                                        <small class="text-muted">Responsable Export, Sahara Trade</small>
+                                    </div>
+                                </div>
+                                <p class="mb-0">"Leur expertise en transport national et gestion logistique nous a fait gagner un temps précieux et réduit nos coûts de 22%."</p>
+                                <div class="mt-3 text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Map Section -->
+        <section id="contact" class="py-7">
+            <div class="container">
+                <div class="text-center mb-7">
+                    <h2 class="section-title display-5 fw-bold">Nos implantations au Maroc</h2>
+                    <p class="lead mx-auto" style="max-width: 700px;">Nous couvrons tout le territoire marocain avec des centres logistiques stratégiques</p>
+                </div>
+                
+                <div class="map-container">
+                    <div class="map-overlay">
+                        <div class="text-center">
+                            <i class="fas fa-map-marked-alt mb-3"></i>
+                            <p>Centres à Rabat, Casablanca, Marrakech, Tanger et Agadir</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="py-7">
+            <div class="container">
+                <div class="cta-section p-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8 mb-4 mb-lg-0">
+                            <h2 class="display-5 fw-bold mb-3">Prêt à transformer votre logistique ?</h2>
+                            <p class="lead mb-0">Rejoignez les centaines d'entreprises marocaines qui nous font déjà confiance</p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <a href="{% url 'transport:signup_client' %}" class="btn btn-light btn-lg px-5 py-3 rounded-pill fw-bold animate__animated animate__pulse animate__infinite">
+                                <i class="fas fa-rocket me-2"></i>Commencer maintenant
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="pt-5 pb-4 position-relative">
+        <div class="footer-wave"></div>
+        <div class="container pt-5">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h4 class="text-white mb-4">
+                        <i class="fas fa-truck-fast me-2"></i>TransportPremium<span class="text-warning">.ma</span>
+                    </h4>
+                    <p class="text-white-50 mb-4">Votre partenaire logistique premium pour des solutions de transport rapides, sécurisées et optimisées dans tout le Maroc.</p>
+                   <!-- ======================= BLOC CORRIGÉ ======================= -->
+<div class="d-flex">
+    <!-- Lien Facebook -->
+    <a href="https://www.facebook.com/login/" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook">
+        <i class="fab fa-facebook-f"></i>
+    </a>
+    <!-- Lien Twitter (X) -->
+    <a href="https://twitter.com/login" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Twitter">
+        <i class="fab fa-twitter"></i>
+    </a>
+    <!-- Lien LinkedIn -->
+    <a href="https://www.linkedin.com/login" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="LinkedIn">
+        <i class="fab fa-linkedin-in"></i>
+    </a>
+    <!-- Lien Instagram -->
+    <a href="https://www.instagram.com/accounts/login/" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram">
+        <i class="fab fa-instagram"></i>
+    </a>
+</div>
+<!-- ============================================================= -->
+                </div>
+                
+                <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                    <h5 class="text-white mb-4">Liens Rapides</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Accueil</a></li>
+                        <li class="mb-2"><a href="#services" class="text-white-50 text-decoration-none">Services</a></li>
+                        <li class="mb-2"><a href="#about" class="text-white-50 text-decoration-none">À Propos</a></li>
+                        <li class="mb-2"><a href="#testimonials" class="text-white-50 text-decoration-none">Témoignages</a></li>
+                        <li><a href="#contact" class="text-white-50 text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-4 mb-4 mb-md-0">
+                    <h5 class="text-white mb-4">Nos Services</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Transport National</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Livraison Express</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Transport de Colis</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Stockage & Logistique</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Transport Réfrigéré</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-4">
+                    <h5 class="text-white mb-4">Contact</h5>
+                    <ul class="list-unstyled text-white-50">
+                        <li class="mb-3 d-flex">
+                            <i class="fas fa-map-marker-alt me-3 mt-1"></i>
+                            <span>123 Avenue Mohammed VI, Rabat, Maroc</span>
+                        </li>
+                        <li class="mb-3 d-flex">
+                            <i class="fas fa-phone me-3 mt-1"></i>
+                            <span>+212 5 37 21 45 67</span>
+                        </li>
+                        <li class="mb-3 d-flex">
+                            <i class="fas fa-envelope me-3 mt-1"></i>
+                            <span>contact@transportpremium.ma</span>
+                        </li>
+                        <li class="d-flex">
+                            <i class="fas fa-clock me-3 mt-1"></i>
+                            <span>Lun-Ven: 8h-20h | Sam: 9h-18h</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="my-5 bg-white-10">
+            
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-white-50 mb-0">&copy; 2025 TransportPremium.ma - Tous droits réservés.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item"><a href="#" class="text-white-50 text-decoration-none">Mentions légales</a></li>
+                        <li class="list-inline-item mx-2">•</li>
+                        <li class="list-inline-item"><a href="#" class="text-white-50 text-decoration-none">Confidentialité</a></li>
+                        <li class="list-inline-item mx-2">•</li>
+                        <li class="list-inline-item"><a href="#" class="text-white-50 text-decoration-none">CGV</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle JS (Popper.js inclus) via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Animation pour les éléments au défilement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Active les animations au scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('.feature-card, .testimonial-card, .stats-container > div > div').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            // Animation des cartes au survol
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-15px) scale(1.03)';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

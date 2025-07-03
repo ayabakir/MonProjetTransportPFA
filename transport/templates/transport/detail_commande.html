@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Leaflet CSS pour la carte -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f8f9fa;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .page-header {
+            padding: 1rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 10px 10px 0 0 !important;
+            background-color: #fff;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--primary-color);
+            opacity: 0.2;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        
+        .timeline-badge {
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            z-index: 1;
+        }
+        
+        .timeline-content {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .address-card {
+            background-color: #f8fafc;
+            border-left: 3px solid var(--primary-color);
+            padding: 1rem;
+            border-radius: 5px;
+            height: 100%;
+        }
+        
+        .btn-outline-primary {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .status-badge {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .price-display {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--success-color);
+        }
+        
+        #map {
+            height: 250px;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 1rem;
+            z-index: 0;
+        }
+        
+        .tracking-progress {
+            margin-top: 1rem;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .progress-step.completed .step-icon {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .progress-step.active .step-icon {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .progress-step.pending .step-icon {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+        
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        
+        .step-details {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .step-connector {
+            position: absolute;
+            left: 15px;
+            top: 32px;
+            bottom: -15px;
+            width: 2px;
+            background-color: #e9ecef;
+            z-index: 0;
+        }
+        
+        .step-connector.completed {
+            background-color: var(--success-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 fw-bold text-primary">{{ page_title }}</h2>
+                    <div>
+                        {% if can_modify %}
+                            <a href="{% url 'transport:modifier_commande' commande.id %}" class="btn btn-outline-primary me-2">
+                                <i class="bi bi-pencil-square"></i> Modifier
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'transport:mes_commandes' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Carte des informations de base -->
+                <div class="card">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
+                        <i class="bi bi-info-circle fs-4 text-primary me-2"></i>
+                        <h5 class="mb-0 fw-semibold">Informations générales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h6 class="text-muted small">Référence</h6>
+                                    <p class="fw-medium">{{ commande.reference_commande_or_id }}</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="text-muted small">Date création</h6>
+                                    <p class="fw-medium">{{ commande.date_creation|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="text-muted small">Statut</h6>
+                                    <span class="status-badge badge bg-{% if commande.statut_commande == 'livree' %}success
+                                    {% elif commande.statut_commande == 'en_cours_livraison' %}primary
+                                    {% elif commande.statut_commande == 'annulee' %}danger
+                                    {% elif commande.statut_commande == 'en_attente_validation' %}warning
+                                    {% else %}secondary{% endif %}">
+                                        {{ commande.get_statut_commande_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h6 class="text-muted small">Poids</h6>
+                                    <p class="fw-medium">{{ commande.poids_kg }} kg</p>
+                                </div>
+                                
+                                {% if commande.volume_m3 %}
+                                <div class="mb-3">
+                                    <h6 class="text-muted small">Volume</h6>
+                                    <p class="fw-medium">{{ commande.volume_m3 }} m³</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carte des adresses -->
+                <div class="card">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
+                        <i class="bi bi-geo-alt fs-4 text-primary me-2"></i>
+                        <h5 class="mb-0 fw-semibold">Adresses</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="address-card">
+                                    <h6 class="text-primary fw-semibold mb-3">
+                                        <i class="bi bi-box-arrow-in-down me-2"></i>Chargement
+                                    </h6>
+                                    <div class="text-muted">{{ commande.adresse_chargement|linebreaks }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="address-card">
+                                    <h6 class="text-success fw-semibold mb-3">
+                                        <i class="bi bi-box-arrow-up me-2"></i>Livraison
+                                    </h6>
+                                    <div class="text-muted">{{ commande.adresse_livraison|linebreaks }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historique de suivi -->
+                {% if suivi_events %}
+                <div class="card">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
+                        <i class="bi bi-clock-history fs-4 text-primary me-2"></i>
+                        <h5 class="mb-0 fw-semibold">Historique de suivi</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            {% for event in suivi_events %}
+                            <div class="timeline-item mb-3">
+                                <div class="timeline-badge"></div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0 fw-semibold">{{ event.statut_reporte }}</h6>
+                                        <small class="text-muted">{{ event.timestamp_evenement|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    {% if event.localisation_texte %}
+                                        <p class="mb-1 text-muted">
+                                            <i class="bi bi-geo-alt-fill text-primary me-1"></i> 
+                                            {{ event.localisation_texte }}
+                                        </p>
+                                    {% endif %}
+                                    {% if event.notes_evenement %}
+                                        <div class="bg-light p-2 rounded mt-2">
+                                            <p class="mb-0 small">{{ event.notes_evenement }}</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Carte de paiement -->
+                {% if commande.statut_commande == 'validee' and commande.montant_total %}
+                <div class="card">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
+                        <i class="bi bi-credit-card fs-4 text-primary me-2"></i>
+                        <h5 class="mb-0 fw-semibold">Paiement</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="price-display mb-3">{{ commande.montant_total }} MAD</div>
+                        <p class="text-muted small mb-4">Montant total à payer</p>
+                        <a href="{% url 'a_stripe:create-checkout-session' commande.id %}" class="btn btn-success w-100 py-2">
+                            <i class="bi bi-credit-card-fill me-2"></i> Procéder au paiement
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Suivi en temps réel -->
+                <div class="card">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
+                        <i class="bi bi-geo-alt fs-4 text-primary me-2"></i>
+                        <h5 class="mb-0 fw-semibold">Suivi en temps réel</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if commande.statut_commande == 'en_cours_livraison' %}
+                            <div id="map"></div>
+                            <div class="tracking-progress mt-3">
+                                <div class="progress-step completed">
+                                    <div class="step-icon">
+                                        <i class="bi bi-check-lg"></i>
+                                    </div>
+                                    <div class="step-content">
+                                        <div class="step-title">Commande préparée</div>
+                                        <div class="step-details">Votre colis a été emballé et est prêt à être expédié</div>
+                                    </div>
+                                    <div class="step-connector completed"></div>
+                                </div>
+                                
+                                <div class="progress-step active">
+                                    <div class="step-icon">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    <div class="step-content">
+                                        <div class="step-title">En cours de livraison</div>
+                                        <div class="step-details" id="current-location">
+                                            <i class="bi bi-geo-alt-fill text-primary me-1"></i>
+                                            <span id="location-text">Localisation en cours de mise à jour...</span>
+                                        </div>
+                                    </div>
+                                    <div class="step-connector"></div>
+                                </div>
+                                
+                                <div class="progress-step pending">
+                                    <div class="step-icon">
+                                        <i class="bi bi-house-check"></i>
+                                    </div>
+                                    <div class="step-content">
+                                        <div class="step-title">Livraison effectuée</div>
+                                        <div class="step-details">Votre colis sera bientôt livré</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif commande.statut_commande == 'livree' %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Votre commande a été livrée avec succès le {{ commande.date_livraison|date:"d/m/Y" }}
+                            </div>
+                            <div id="map"></div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                Le suivi en temps réel sera disponible une fois la commande en cours de livraison.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Carte d'aide -->
+                <div class="card">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
+                        <i class="bi bi-question-circle fs-4 text-primary me-2"></i>
+                        <h5 class="mb-0 fw-semibold">Aide & Support</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-primary">
+                                <i class="bi bi-headset fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Service client</h6>
+                                <p class="text-muted small mb-0">Pour toute question concernant votre commande</p>
+                            </div>
+                        </div>
+<a href="#" class="btn btn-outline-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#supportModal">
+    <i class="bi bi-chat-left-text me-2"></i> Contacter le support
+</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- ======================= DÉBUT DU BLOC À AJOUTER ======================= -->
+<!-- Modal pour le Support Client -->
+<div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="supportModalLabel">
+                    <i class="bi bi-headset me-2"></i> Contacter notre support
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Pour toute question ou urgence concernant votre commande <strong>#{{ commande.reference_commande_or_id }}</strong>, vous pouvez nous joindre via les moyens suivants :</p>
+                
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-telephone-fill fs-4 text-primary me-3"></i>
+                        <div>
+                            <div class="fw-bold">Par téléphone</div>
+                            <a href="tel:+212522001122" class="text-decoration-none text-dark">+212 5 22 00 11 22</a>
+                            <br><small class="text-muted">Disponible de 9h à 18h, du Lundi au Samedi.</small>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-envelope-fill fs-4 text-primary me-3"></i>
+                        <div>
+                            <div class="fw-bold">Par email</div>
+                            <a href="mailto:support@transportpremium.ma" class="text-decoration-none text-dark">support@transportpremium.ma</a>
+                            <br><small class="text-muted">Réponse garantie sous 24 heures.</small>
+                        </div>
+                    </li>
+                </ul>
+
+                <p class="mt-4 text-center text-muted small">N'oubliez pas de mentionner la référence de votre commande pour un traitement plus rapide.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS pour la carte -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script>
+        // Initialisation de la carte (exemple avec des coordonnées factices)
+        {% if commande.statut_commande == 'en_cours_livraison' or commande.statut_commande == 'livree' %}
+        document.addEventListener('DOMContentLoaded', function() {
+            // Coordonnées factices pour la démo
+            const startCoords = [34.020882, -6.841650]; // Casablanca
+            const endCoords = [33.971590, -6.849813]; // Rabat
+            const currentCoords = [33.893791, -6.771370]; // Position actuelle (entre les deux)
+            
+            // Initialisation de la carte
+            const map = L.map('map').setView(currentCoords, 10);
+            
+            // Ajout du fond de carte
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Marqueurs
+            const startMarker = L.marker(startCoords).addTo(map)
+                .bindPopup("Point de départ<br>" + "{{ commande.adresse_chargement|escapejs|truncatewords:10 }}");
+                
+            const endMarker = L.marker(endCoords).addTo(map)
+                .bindPopup("Point d'arrivée<br>" + "{{ commande.adresse_livraison|escapejs|truncatewords:10 }}");
+                
+            const currentMarker = L.marker(currentCoords, {
+                icon: L.divIcon({
+                    className: 'current-location-marker',
+                    html: '<i class="bi bi-truck text-white bg-primary p-2 rounded-circle"></i>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                })
+            }).addTo(map)
+            .bindPopup("Position actuelle<br>En cours de livraison");
+            
+            // Ligne de trajet (simulée)
+            const route = L.polyline([startCoords, currentCoords, endCoords], {
+                color: '#3498db',
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }).addTo(map);
+            
+            // Ajuster la vue pour voir tout le trajet
+            map.fitBounds(route.getBounds(), { padding: [50, 50] });
+            
+            // Simulation de mise à jour de la position (pour la démo)
+            {% if commande.statut_commande == 'en_cours_livraison' %}
+            let counter = 0;
+            const locations = [
+                { coords: [33.893791, -6.771370], text: "Autoroute A3, près de Témara" },
+                { coords: [33.910000, -6.790000], text: "Route de Rabat, proche de Souissi" },
+                { coords: [33.950000, -6.820000], text: "Centre-ville de Rabat, en approche" }
+            ];
+            
+            const updateLocation = () => {
+                const location = locations[counter % locations.length];
+                currentMarker.setLatLng(location.coords);
+                document.getElementById('location-text').textContent = location.text;
+                counter++;
+                
+                // Mettre à jour la ligne de trajet
+                route.setLatLngs([startCoords, location.coords, endCoords]);
+            };
+            
+            // Mise à jour toutes les 5 secondes (pour la démo)
+            updateLocation();
+            setInterval(updateLocation, 5000);
+            {% endif %}
+        });
+        {% endif %}
+
+    </script>
+</body>
+</html>

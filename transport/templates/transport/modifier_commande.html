@@ -1,0 +1,185 @@
+{% extends "transport/base_client.html" %} {# Ou votre template de base pour les pages internes du client #}
+{% load static %}
+{% load widget_tweaks %} {# Ou form_tags si vous utilisez celui-ci #}
+
+{% block title %}Modifier Commande #{{ commande.reference_commande_or_id }} - TransportPremium{% endblock %}
+
+{% block extra_head %}
+<style>
+    .page-header h1 .text-primary {
+        font-weight: 600; /* Pour que la référence de commande ressorte un peu */
+    }
+    .form-section-divider {
+        margin-top: 2.5rem;
+        margin-bottom: 1.5rem;
+        border: 0;
+        border-top: 1px solid #e0e0e0;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .card.form-card {
+        border: none;
+        border-radius: 0.75rem;
+    }
+    .card-header.form-card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem 1.5rem;
+    }
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    .btn-submit-modification { /* Style spécifique pour le bouton de soumission de modification */
+        background-color: var(--primary); /* Utilise votre couleur primaire */
+        border-color: var(--primary);
+        padding: 0.65rem 1.5rem;
+        font-weight: 500;
+        color: white;
+    }
+    .btn-submit-modification:hover {
+        background-color: #004182; /* Un bleu plus foncé (ajustez si var(--secondary) est défini) */
+        border-color: #00366d;
+        color: white;
+    }
+     .btn-cancel-action { /* Style pour le bouton annuler */
+        padding: 0.65rem 1.5rem;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block main_content %} {# Adaptez le nom du bloc à celui de votre base_client.html #}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <i class="bi bi-pencil-square fs-1 text-primary mb-2 d-block"></i>
+                    <h1 class="display-5 fw-bold">Modifier la Commande</h1>
+                    <p class="lead text-muted mb-0">Référence : <span class="fw-semibold text-primary">#{{ commande.reference_commande_or_id }}</span></p>
+                </div>
+                <a href="{% url 'transport:mes_commandes' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Retour à Mes Commandes
+                </a>
+            </div>
+
+
+            <div class="card shadow-lg form-card">
+                <div class="card-header form-card-header">
+                    <h5 class="mb-0"><i class="bi bi-box-seam-fill me-2 text-primary"></i>Mettre à jour les détails de l'expédition</h5>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger p-2 small">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-1">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            {# Les champs du CommandeForm seront rendus ici #}
+                            {# Nous ne pouvons pas modifier 'client' ou 'reference_commande' via ce formulaire #}
+                            {# Le statut est géré par le gestionnaire #}
+
+                            <div class="col-12">
+                                <label for="{{ form.description_marchandise.id_for_label }}" class="form-label">
+                                    Description de la Marchandise {% if form.description_marchandise.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {% render_field form.description_marchandise class="form-control form-control-lg" rows="3" %}
+                                {% for error in form.description_marchandise.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.poids_kg.id_for_label }}" class="form-label">
+                                    Poids Total (kg) {% if form.poids_kg.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    {% render_field form.poids_kg class="form-control" %}
+                                    <span class="input-group-text">kg</span>
+                                </div>
+                                {% for error in form.poids_kg.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.volume_m3.id_for_label }}" class="form-label">
+                                    Volume Total (m³) {% if form.volume_m3.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    {% render_field form.volume_m3 class="form-control" %}
+                                    <span class="input-group-text">m³</span>
+                                </div>
+                                {% for error in form.volume_m3.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        <hr class="form-section-divider">
+                        <h5 class="mb-3 fw-semibold"><i class="bi bi-pin-map-fill me-2 text-primary"></i>Adresses</h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.adresse_chargement.id_for_label }}" class="form-label">
+                                    Adresse d'Enlèvement {% if form.adresse_chargement.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {% render_field form.adresse_chargement class="form-control form-control-lg" rows="2" %}
+                                {% for error in form.adresse_chargement.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.adresse_livraison.id_for_label }}" class="form-label">
+                                    Adresse de Livraison {% if form.adresse_livraison.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {% render_field form.adresse_livraison class="form-control form-control-lg" rows="2" %}
+                                {% for error in form.adresse_livraison.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        <hr class="form-section-divider">
+                        <h5 class="mb-3 fw-semibold"><i class="bi bi-calendar3-event-fill me-2 text-primary"></i>Détails Supplémentaires</h5>
+
+                        <div class="row g-3">
+                             <div class="col-md-6">
+                                <label for="{{ form.date_souhaitee_livraison.id_for_label }}" class="form-label">
+                                    Date de Livraison Souhaitée {% if form.date_souhaitee_livraison.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {% render_field form.date_souhaitee_livraison class="form-control form-control-lg" type="date" %}
+                                {% for error in form.date_souhaitee_livraison.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.instructions_speciales.id_for_label }}" class="form-label">
+                                    Instructions Spéciales {% if form.instructions_speciales.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {% render_field form.instructions_speciales class="form-control form-control-lg" rows="2" %}
+                                {% for error in form.instructions_speciales.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4 pt-2">
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'transport:mes_commandes' %}" class="btn btn-outline-secondary btn-lg btn-cancel-action">Annuler</a>
+                            <button type="submit" class="btn btn-primary btn-lg btn-submit-modification">
+                                <i class="bi bi-check-circle-fill me-2"></i> Enregistrer Modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-5 text-center">
+                <p class="text-muted small">
+                    <i class="bi bi-shield-lock"></i> Toutes vos informations sont sécurisées. Pour toute question, contactez notre support.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

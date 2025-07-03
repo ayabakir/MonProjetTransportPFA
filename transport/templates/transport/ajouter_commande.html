@@ -1,0 +1,110 @@
+{% extends "transport/base_client.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Nouvelle Commande - TransportPremium{% endblock %}
+
+{% block main_content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 mb-0 text-primary">Nouvelle Commande</h1>
+                <a href="{% url 'transport:dashboard_client' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i> Retour
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-truck me-2"></i>Détails de l'expédition
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" novalidate class="needs-validation">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-4">
+                            {% for field in form %}
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ field|add_class:"form-control" }}
+                                        <label for="{{ field.id_for_label }}">
+                                            {{ field.label }}
+                                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        
+                                        {% if field.help_text %}
+                                            <small class="form-text text-muted mt-1 d-block">
+                                                <i class="bi bi-info-circle me-1"></i>{{ field.help_text|safe }}
+                                            </small>
+                                        {% endif %}
+                                        
+                                        {% for error in field.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="border-top my-5"></div>
+                        
+                        <div class="d-flex justify-content-between pt-3">
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="bi bi-eraser me-1"></i> Réinitialiser
+                            </button>
+                            <div>
+                                <a href="{% url 'transport:dashboard_client' %}" class="btn btn-outline-danger me-2">
+                                    <i class="bi bi-x-circle me-1"></i> Annuler
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-check-circle me-1"></i> Soumettre
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center text-muted small">
+                <p class="mb-0">
+                    <i class="bi bi-shield-lock me-1"></i>Toutes vos informations sont sécurisées.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-floating label {
+        color: #495057;
+    }
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .invalid-feedback {
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}

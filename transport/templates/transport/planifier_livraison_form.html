@@ -1,0 +1,288 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planification de Livraison | Gestion Logistique</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {{ form.media.css }}
+    
+    <style>
+        :root {
+            --primary-color: #3a7bd5;
+            --secondary-color: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), #00d2ff);
+            border-bottom: none;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        /* Styles pour les commandes */
+        .command-item {
+            border-left: 3px solid var(--primary-color);
+            transition: all 0.2s;
+        }
+        
+        .command-item:hover {
+            background-color: #f0f7ff;
+            transform: translateX(3px);
+        }
+        
+        /* Adaptation du widget admin */
+        .selector {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        .selector select {
+            width: 100% !important;
+            min-height: 200px !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 4px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="d-flex align-items-center mb-4">
+                    <i class="fas fa-truck me-3 text-primary" style="font-size: 2rem;"></i>
+                    <h1 class="h3 mb-0 fw-bold">Planification de Livraison</h1>
+                </div>
+                
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="h5 m-0 text-white"><i class="fas fa-clipboard-list me-2"></i>Détails de la planification</h2>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Section Commandes - Version améliorée -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold mb-3 d-flex align-items-center">
+                                    <i class="fas fa-boxes me-2 text-primary"></i>
+                                    Commandes Associées
+                                </label>
+                                
+                                <div class="border rounded-3 bg-white p-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            <i class="fas fa-list-check me-1"></i>
+                                            {{ form.commandes.value|length }} commande(s) sélectionnée(s)
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Liste des commandes sélectionnées -->
+                                    <div id="selectedCommands">
+                                        {% for cmd in form.commandes.value %}
+                                        <div class="command-item bg-light rounded p-3 mb-2 d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="fw-bold text-primary">CMD-{{ cmd|slice:"0:6" }}-{{ cmd|slice:"6:10" }}</span>
+                                                <span class="ms-2 badge bg-info bg-opacity-10 text-info">À livrer</span>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <div class="text-center py-3 text-muted">
+                                            <i class="fas fa-box-open fa-2x mb-2"></i>
+                                            <p class="mb-0">Aucune commande sélectionnée</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Widget de sélection des commandes -->
+                                <div class="border rounded-3 bg-white p-3">
+                                    {{ form.commandes }}
+                                </div>
+                                
+                                <small class="text-muted mt-2 d-block">
+                                    <i class="fas fa-info-circle me-1"></i> Sélectionnez les commandes à inclure dans cette livraison.
+                                </small>
+                            </div>
+                            <hr class="my-4">
+                            
+                            <!-- Section Véhicule et Chauffeur -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.vehicule.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="fas fa-car me-2 text-primary"></i>
+                                            {{ form.vehicule.label }}
+                                        </label>
+                                        {{ form.vehicule }}
+                                        {% for error in form.vehicule.errors %}
+                                        <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.chauffeur.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="fas fa-user-tie me-2 text-primary"></i>
+                                            {{ form.chauffeur.label }}
+                                        </label>
+                                        {{ form.chauffeur }}
+                                        {% for error in form.chauffeur.errors %}
+                                        <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Section Planning -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.date_planification_debut.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="far fa-calendar-alt me-2 text-primary"></i>
+                                            {{ form.date_planification_debut.label }}
+                                        </label>
+                                        {{ form.date_planification_debut }}
+                                        {% for error in form.date_planification_debut.errors %}
+                                        <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.duree_estimee_heures.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="far fa-clock me-2 text-primary"></i>
+                                            {{ form.duree_estimee_heures.label }}
+                                        </label>
+                                        <div class="input-group">
+                                            {{ form.duree_estimee_heures }}
+                                            <span class="input-group-text">heures</span>
+                                        </div>
+                                        {% for error in form.duree_estimee_heures.errors %}
+                                        <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div class="mb-4">
+                                <label for="{{ form.notes_internes_livraison.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-sticky-note me-2 text-primary"></i>
+                                    {{ form.notes_internes_livraison.label }}
+                                </label>
+                                {{ form.notes_internes_livraison }}
+                                {% for error in form.notes_internes_livraison.errors %}
+                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'transport:dashboard_gestionnaire' %}" class="btn btn-outline-secondary px-4">
+                                    <i class="fas fa-arrow-left me-2"></i>Retour
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-calendar-check me-2"></i>Planifier la livraison
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {{ form.media.js }}
+    
+    <script>
+        // Script pour améliorer l'affichage des commandes sélectionnées
+        document.addEventListener('DOMContentLoaded', function() {
+            const commandSelect = document.getElementById('id_commandes');
+            
+            function updateSelectedCommands() {
+                const selectedContainer = document.getElementById('selectedCommands');
+                const selectedOptions = Array.from(commandSelect.selectedOptions);
+                const countBadge = document.querySelector('.badge');
+                
+                if (selectedOptions.length > 0) {
+                    let html = '';
+                    selectedOptions.forEach(option => {
+                        const cmdId = option.value;
+                        const formattedId = `CMD-${cmdId.slice(0,6)}-${cmdId.slice(6,10)}`;
+                        
+                        html += `
+                        <div class="command-item bg-light rounded p-3 mb-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-primary">${formattedId}</span>
+                                <span class="ms-2 badge bg-info bg-opacity-10 text-info">À livrer</span>
+                            </div>
+                        </div>`;
+                    });
+                    
+                    selectedContainer.innerHTML = html;
+                    countBadge.innerHTML = `<i class="fas fa-list-check me-1"></i>${selectedOptions.length} commande(s) sélectionnée(s)`;
+                } else {
+                    selectedContainer.innerHTML = `
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-box-open fa-2x mb-2"></i>
+                        <p class="mb-0">Aucune commande sélectionnée</p>
+                    </div>`;
+                    countBadge.innerHTML = `<i class="fas fa-list-check me-1"></i>0 commande(s) sélectionnée(s)`;
+                }
+            }
+            
+            // Mettre à jour lors de la sélection/désélection
+            commandSelect.addEventListener('change', updateSelectedCommands);
+            
+            // Initialiser l'affichage
+            updateSelectedCommands();
+        });
+    </script>
+</body>
+</html>

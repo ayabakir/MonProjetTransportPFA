@@ -1,0 +1,285 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrack | Tableau de Bord Transporteur</title>
+    <!-- Liens CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles CSS -->
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+        }
+        body {
+            background-color: #f8f9fc;
+            display: flex;
+        }
+        .sidebar {
+            background: var(--primary);
+            color: white;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: all 0.3s;
+            width: 250px;
+            z-index: 1000;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .sidebar .nav-link i { margin-right: 10px; }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+        
+        .stat-card {
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border: none;
+        }
+        .vehicle-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .page-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .vehicle-icon {
+            background-color: #f8f9fc;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        .action-btn { padding: 0.25rem 0.5rem; }
+
+        /* Styles pour la timeline d'activité */
+        .activity-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            height: calc(100% - 10px);
+            width: 2px;
+            background: #e9ecef;
+        }
+        .activity-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+        .activity-icon {
+            position: absolute;
+            top: 0;
+            left: -20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid white;
+        }
+        .activity-icon.icon-add { background-color: #28a745; }
+        .activity-icon.icon-mission { background-color: #ffc107; }
+        .activity-icon.icon-maintenance { background-color: #dc3545; }
+        .activity-icon.icon-available { background-color: #17a2b8; }
+        .activity-content { padding-left: 25px; }
+        .activity-content .activity-title { font-weight: 600; margin-bottom: 2px; }
+        .activity-content .activity-description { font-size: 0.9rem; color: #6c757d; margin-bottom: 4px; }
+        .activity-content .activity-time { font-size: 0.8rem; color: #a0aec0; }
+        
+        /* Styles pour l'impression */
+        @media print {
+            body { display: block; background-color: white; }
+            .d-print-none { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+            .card, .table { box-shadow: none !important; border: 1px solid #ccc; }
+            .card, .row { page-break-inside: avoid; }
+            .vehicle-badge { background-color: transparent !important; color: #000 !important; border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barre Latérale (masquée à l'impression) -->
+    <div class="sidebar p-3 d-print-none">
+        <div class="p-3 text-center">
+            <a class="navbar-brand text-white text-decoration-none" href="{% url 'transport:dashboard_transporteur' %}">
+                <i class="bi bi-truck me-2" style="font-size: 1.5rem;"></i>
+                <span class="fw-bold">TransportPremium</span><span class="fw-bold" style="color: #ffc107;">.ma</span>
+            </a>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a href="{% url 'transport:dashboard_transporteur' %}" class="nav-link active"><i class="bi bi-speedometer2"></i><span>Tableau de Bord</span></a></li>
+            <li class="nav-item"><a href="{% url 'transport:ajouter_vehicule' %}" class="nav-link"><i class="bi bi-plus-circle"></i><span>Ajouter Véhicule</span></a></li>
+            <li class="nav-item mt-auto"><hr style="border-color: rgba(255,255,255,0.2);"><a href="{% url 'transport:logout' %}" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i><span>Déconnexion</span></a></li>
+        </ul>
+    </div>
+
+    <!-- Contenu Principal -->
+    <div class="main-content">
+        <!-- En-tête (masqué à l'impression) -->
+        <div class="d-flex justify-content-between align-items-center page-header d-print-none">
+            <div>
+                <h1 class="h3 mb-0">Tableau de Bord Transporteur</h1>
+                <p class="text-muted mb-0">Gestion de votre flotte de véhicules</p>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="me-3 text-end">
+                    <span class="fw-bold d-block">{{ transporteur.nom }}</span>
+                    <small class="text-muted">{{ transporteur.nom_entreprise }}</small>
+                </div>
+                {% if transporteur.photo_profil.url %}
+                    <img src="{{ transporteur.photo_profil.url }}" class="rounded-circle" width="40" height="40" alt="Profile" style="object-fit: cover;">
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ transporteur.nom|slice:':2' }}&background=3498db&color=fff&size=40" class="rounded-circle" width="40" height="40" alt="Profile">
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Cartes de Stats (masquées à l'impression) -->
+        <div class="row mb-4 d-print-none">
+            <div class="col-md-3 mb-3"><div class="card stat-card bg-primary text-white"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title small text-uppercase">Véhicules Total</h5><h2 class="card-text fw-bold">{{ vehicules|length }}</h2></div><i class="bi bi-truck fs-1 opacity-50"></i></div></div></div>
+            <div class="col-md-3 mb-3"><div class="card stat-card bg-success text-white"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title small text-uppercase">Disponibles</h5><h2 class="card-text fw-bold">{{ available_vehicles }}</h2></div><i class="bi bi-check-circle fs-1 opacity-50"></i></div></div></div>
+            <div class="col-md-3 mb-3"><div class="card stat-card bg-warning text-dark"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title small text-uppercase">En Mission</h5><h2 class="card-text fw-bold">{{ on_mission_vehicles }}</h2></div><i class="bi bi-signpost-split fs-1 opacity-50"></i></div></div></div>
+            <div class="col-md-3 mb-3"><div class="card stat-card bg-danger text-white"><div class="card-body d-flex justify-content-between align-items-center"><div><h5 class="card-title small text-uppercase">En Maintenance</h5><h2 class="card-text fw-bold">{{ maintenance_vehicles }}</h2></div><i class="bi bi-tools fs-1 opacity-50"></i></div></div></div>
+        </div>
+
+        <!-- Actions Rapides (masquées à l'impression) -->
+        <div class="row mb-4 d-print-none">
+            <div class="col-12"><div class="card shadow-sm"><div class="card-body d-md-flex justify-content-between align-items-center"><h5 class="card-title mb-3 mb-md-0 fw-semibold">Actions Rapides</h5><div class="d-flex gap-2"><a href="{% url 'transport:ajouter_vehicule' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Ajouter Véhicule</a><button id="btn-imprimer-rapport" class="btn btn-outline-secondary"><i class="bi bi-printer me-1"></i> Imprimer Rapport</button></div></div></div></div>
+        </div>
+
+        <!-- Contenu principal visible à l'écran et à l'impression -->
+        <div class="row">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">Votre Flotte de Véhicules</h5>
+                        <span class="badge bg-primary rounded-pill d-print-none">{{ vehicules|length }} véhicules</span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if vehicules %}
+                        <div class="table-responsive"><table class="table table-hover mb-0">
+                            <thead class="table-light"><tr><th>Immatriculation</th><th>Type</th><th>Statut</th><th>Capacité</th><th class="d-print-none">Actions</th></tr></thead>
+                            <tbody>
+                            {% for vehicule in vehicules %}
+                                <tr>
+                                    <td><strong>{{ vehicule.immatriculation }}</strong></td>
+                                    <td>{{ vehicule.type_vehicule }}</td>
+                                    <td>{% if vehicule.statut_vehicule == 'disponible' %}<span class="vehicle-badge bg-success text-white">Disponible</span>{% elif vehicule.statut_vehicule == 'en_mission' %}<span class="vehicle-badge bg-primary text-white">En Mission</span>{% else %}<span class="vehicle-badge bg-warning text-dark">Maintenance</span>{% endif %}</td>
+                                    <td><small>{{ vehicule.capacite_poids_kg|default:"0" }} kg / {{ vehicule.capacite_volume_m3|default:"0" }} m³</small></td>
+                                    <td class="d-print-none"><div class="d-flex"><a href="{% url 'transport:modifier_vehicule' vehicule.pk %}" class="btn btn-sm btn-outline-primary action-btn" title="Modifier"><i class="bi bi-pencil"></i></a><a href="{% url 'transport:supprimer_vehicule' vehicule.pk %}" class="btn btn-sm btn-outline-danger action-btn" title="Supprimer"><i class="bi bi-trash"></i></a><button class="btn btn-sm btn-outline-info action-btn" data-bs-toggle="modal" data-bs-target="#detailVehicule{{ vehicule.pk }}" title="Détails"><i class="bi bi-info-circle"></i></button></div></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table></div>
+                        {% else %}
+                        <div class="text-center py-5 d-print-none"><p>Aucun véhicule enregistré.</p></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white"><h5 class="mb-0 fw-semibold">Votre Entreprise</h5></div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="vehicle-icon" style="padding: 0; overflow: hidden; border: 1px solid #eee;">
+                                {% if transporteur.photo_profil.url %}<img src="{{ transporteur.photo_profil.url }}" alt="Photo de profil" style="width: 100%; height: 100%; object-fit: cover;">{% else %}<i class="fas fa-truck fa-2x text-primary"></i>{% endif %}
+                            </div>
+                            <div><h4 class="mb-0">{{ transporteur.nom_entreprise }}</h4><p class="text-muted mb-0">{{ transporteur.nom }}</p></div>
+                        </div>
+                        <ul class="list-group list-group-flush"><li class="list-group-item"><strong>Contact:</strong> {{ transporteur.contact_telephone }}</li><li class="list-group-item"><strong>Email:</strong> {{ transporteur.contact_email|default:"-" }}</li><li class="list-group-item"><strong>Inscrit le:</strong> {{ transporteur.date_inscription|date:"d/m/Y" }}</li></ul>
+                        <div class="mt-3 d-print-none"><a href="{% url 'transport:modifier_profil' %}" class="btn btn-outline-primary w-100"><i class="bi bi-pencil me-1"></i> Modifier Profil</a></div>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center"><h5 class="mb-0 fw-semibold">Activité Récente</h5><i class="bi bi-activity text-info fs-5 d-print-none"></i></div>
+                    <div class="card-body">
+                        {% if activites_recentes %}
+                        <div class="activity-timeline">
+                            {% for activite in activites_recentes %}
+                            <div class="activity-item">
+                                <div class="activity-icon {% if activite.type == 'vehicule_ajoute' %}icon-add{% elif activite.vehicule.statut_vehicule == 'en_mission' %}icon-mission{% elif activite.vehicule.statut_vehicule == 'en_maintenance' %}icon-maintenance{% else %}icon-available{% endif %}">
+                                    {% if activite.type == 'vehicule_ajoute' %}<i class="fas fa-plus"></i>{% elif activite.vehicule.statut_vehicule == 'en_mission' %}<i class="fas fa-truck-moving"></i>{% elif activite.vehicule.statut_vehicule == 'en_maintenance' %}<i class="fas fa-tools"></i>{% else %}<i class="fas fa-check"></i>{% endif %}
+                                </div>
+                                <div class="activity-content">
+                                    <p class="activity-title mb-0">{% if activite.type == 'vehicule_ajoute' %}Véhicule ajouté{% else %}Statut mis à jour{% endif %}</p>
+                                    <p class="activity-description">{% if activite.type == 'vehicule_ajoute' %}{{ activite.vehicule.immatriculation }}{% else %}{{ activite.vehicule.immatriculation }} est <span class="fw-bold">{{ activite.vehicule.get_statut_vehicule_display }}</span>{% endif %}</p>
+                                    <small class="activity-time">{{ activite.date|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-3"><i class="bi bi-clock-history text-muted fs-1"></i><p class="text-muted mt-2">Aucune activité récente</p></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fenêtres Modales (masquées à l'impression) -->
+    <div class="d-print-none">
+        {% for vehicule in vehicules %}
+        <div class="modal fade" id="detailVehicule{{ vehicule.pk }}" tabindex="-1">
+            <div class="modal-dialog"><div class="modal-content"><!-- Contenu du modal --></div></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Scripts JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialisation des tooltips
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+            
+            // Gestion du bouton d'impression
+            const printButton = document.getElementById('btn-imprimer-rapport');
+            if(printButton) {
+                printButton.addEventListener('click', function() {
+                    window.print();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Fichier .gitignore
+
+# Ignorer l'environnement virtuel
+venv/
+
+# Ignorer les fichiers de secrets
+.env
+
+# Ignorer la base de données locale SQLite
+db.sqlite3
+
+# Ignorer les fichiers cache de Python
+__pycache__/
+*.pyc
+
+# Ignorer les dossiers générés par la commande collectstatic et les uploads des utilisateurs
+# Ces dossiers seront créés directement sur le serveur
+staticfiles/
+media/

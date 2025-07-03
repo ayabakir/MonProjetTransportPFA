@@ -1,0 +1,558 @@
+{% load static %}
+{% load widget_tweaks %}
+{% block extra_head %}
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    :root {
+        --primary-blue: #3498db;
+        --dark-blue: #2c3e50;
+        --danger-red: #e74c3c;
+        --success-green: #2ecc71;
+        --warning-orange: #f39c12;
+        --info-teal: #1abc9c;
+    }
+
+    .dashboard-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--dark-blue), var(--primary-blue));
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .delivery-card {
+        border-radius: 10px;
+        border-left: 5px solid transparent;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        background-color: white;
+    }
+
+    .delivery-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .status-badge {
+        font-size: 0.85em;
+        padding: 0.35em 0.65em;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    /* Couleurs des statuts */
+    .status-assigned { border-left-color: var(--warning-orange); }
+    .status-planned { border-left-color: var(--info-teal); }
+    .status-in-progress { border-left-color: var(--primary-blue); }
+    .status-problem { border-left-color: var(--danger-red); }
+    .status-completed { border-left-color: var(--success-green); }
+
+    .badge-assigned { background-color: var(--warning-orange); color: #fff; }
+    .badge-planned { background-color: var(--info-teal); color: #fff; }
+    .badge-in-progress { background-color: var(--primary-blue); color: #fff; }
+    .badge-problem { background-color: var(--danger-red); color: #fff; }
+    .badge-completed { background-color: var(--success-green); color: #fff; }
+
+    .logout-btn {
+        background-color: var(--danger-red);
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .orders-list {
+        max-height: 150px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .section-title {
+        position: relative;
+        padding-bottom: 0.8rem;
+        margin-bottom: 1.8rem;
+        font-weight: 600;
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: var(--primary-blue);
+        border-radius: 2px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin: 2rem 0;
+    }
+
+    .empty-state i {
+        font-size: 3.5rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+
+    .action-buttons .btn {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        min-width: 120px;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            margin-top: 1rem;
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="dashboard-container">
+    <div class="container">
+        <!-- En-tête du dashboard -->
+        <div class="dashboard-header d-flex flex-wrap justify-content-between align-items-center">
+            <div class="header-text">
+                <h1 class="h3 mb-2">Tableau de Bord Chauffeur</h1>
+                <p class="mb-0">Bienvenue, {{ chauffeur.user.get_full_name|default:chauffeur.user.username }}</p>
+            </div>
+            <div class="user-info">
+                <div class="d-flex align-items-center">
+                    <div class="me-4 text-end">
+                        <span class="fw-bold d-block">{{ chauffeur.user.get_full_name|default:chauffeur.user.username }}</span>
+                        <small class="text-white-80">Permis: {{ chauffeur.numero_permis }}</small>
+                    </div>
+                    <a href="{% url 'transport:logout' %}" class="logout-btn btn">
+                        <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages système -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle{% elif message.tags == 'success' %}bi-check-circle{% else %}bi-info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <!-- Colonne principale - Livraisons à gérer -->
+            <div class="col-lg-8">
+                <h4 class="section-title">Livraisons à Gérer ({{ livraisons_a_gerer.count }})</h4>
+                
+                {% if livraisons_a_gerer %}
+                    <div class="row">
+                        {% for livraison in livraisons_a_gerer %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card delivery-card 
+                                {% if livraison.statut_livraison == 'assignee_en_attente_acceptation' %}status-assigned
+                                {% elif livraison.statut_livraison == 'planifiee' %}status-planned
+                                {% elif livraison.statut_livraison == 'en_cours_chargement' or livraison.statut_livraison == 'en_transit' %}status-in-progress
+                                {% elif livraison.statut_livraison == 'probleme_signale' %}status-problem
+                                {% endif %}">
+                                <div class="card-header bg-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">Livraison #{{ livraison.id }}</h5>
+                                        <span class="status-badge 
+                                            {% if livraison.statut_livraison == 'assignee_en_attente_acceptation' %}badge-assigned
+                                            {% elif livraison.statut_livraison == 'planifiee' %}badge-planned
+                                            {% elif livraison.statut_livraison == 'en_cours_chargement' or livraison.statut_livraison == 'en_transit' %}badge-in-progress
+                                            {% elif livraison.statut_livraison == 'probleme_signale' %}badge-problem
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ livraison.get_statut_livraison_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="delivery-info mb-3">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small class="text-muted">Date planifiée</small>
+                                                <p class="mb-0 fw-bold">{{ livraison.date_planification_debut|date:"d/m/Y H:i" }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Véhicule</small>
+                                                <p class="mb-0 fw-bold">{{ livraison.vehicule.immatriculation|default:"-" }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="orders-container mb-3">
+                                        <p class="fw-semibold mb-2">Commandes à livrer :</p>
+                                        <div class="orders-list">
+                                            {% if livraison.commandes.all %}
+                                                <ul class="list-group list-group-flush">
+                                                    {% for cmd in livraison.commandes.all %}
+                                                    <li class="list-group-item border-0 px-0 py-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-box-seam me-3 text-primary"></i>
+                                                            <div>
+                                                                <span class="d-block fw-medium">#{{ cmd.reference_commande|default:cmd.id }}</span>
+                                                                <small class="text-muted">{{ cmd.adresse_livraison|truncatechars:40 }}</small>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% else %}
+                                                <p class="text-muted mb-0">Aucune commande associée</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="action-buttons d-flex flex-wrap">
+                                        {% if livraison.statut_livraison == 'assignee_en_attente_acceptation' %}
+                                            <button type="button" class="btn btn-success me-2 mb-2" data-bs-toggle="modal" data-bs-target="#actionModal{{ livraison.id }}">
+                                                <i class="bi bi-check-circle me-1"></i> Accepter
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="btn btn-primary me-2 mb-2" data-bs-toggle="modal" data-bs-target="#majStatutModal{{ livraison.id }}">
+                                                <i class="bi bi-pencil-square me-1"></i> Mettre à jour
+                                            </button>
+                                        {% endif %}
+                                        <!-- Modifiez le bouton Itinéraire -->
+                                            <a href="#" class="btn btn-outline-secondary mb-2" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#itineraireModal{{ livraison.id }}"
+                                                data-livraison-id="{{ livraison.id }}">
+                                                <i class="bi bi-geo-alt me-1"></i> Itinéraire
+                                            </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Ajoutez ce modal pour afficher la carte -->
+<div class="modal fade" id="itineraireModal{{ livraison.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Itinéraire pour Livraison #{{ livraison.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="map-{{ livraison.id }}" style="height: 500px; width: 100%;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <a href="#" class="btn btn-primary" id="openInMaps{{ livraison.id }}" target="_blank">
+                    <i class="bi bi-phone me-1"></i> Ouvrir dans l'application
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+                        <!-- Modal Accepter/Refuser -->
+                        <div class="modal fade" id="actionModal{{ livraison.id }}" tabindex="-1" aria-labelledby="actionModalLabel{{ livraison.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <form method="POST" action="{% url 'transport:action_livraison_chauffeur' livraison.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="actionModalLabel{{ livraison.id }}">Confirmation de livraison</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="mb-4">Voulez-vous accepter la livraison #{{ livraison.id }} ?</p>
+                                            
+                                            <div class="mb-3">
+                                                {{ accepter_refuser_form.acceptee.label_tag }}
+                                                <div class="mt-2">
+                                                    {% for radio in accepter_refuser_form.acceptee %}
+                                                    <div class="form-check">
+                                                        {{ radio.tag }}
+                                                        <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                                            {{ radio.choice_label }}
+                                                        </label>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-3" id="motifRefusDiv{{ livraison.id }}" style="display:none;">
+                                                <label for="{{ accepter_refuser_form.motif_refus_chauffeur.id_for_label }}" class="form-label">
+                                                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                                                    {{ accepter_refuser_form.motif_refus_chauffeur.label }}
+                                                </label>
+                                                {{ accepter_refuser_form.motif_refus_chauffeur|add_class:"form-control"|attr:"rows:3" }}
+                                                <small class="text-muted">Merci de préciser la raison de votre refus</small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" class="btn btn-primary">Confirmer</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Mise à Jour Statut -->
+                        <div class="modal fade" id="majStatutModal{{ livraison.id }}" tabindex="-1" aria-labelledby="majStatutModalLabel{{ livraison.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <form method="POST" action="{% url 'transport:maj_statut_livraison_chauffeur' livraison.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="majStatutModalLabel{{ livraison.id }}">Mise à jour livraison #{{ livraison.id }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="{{ maj_statut_form.nouveau_statut.id_for_label }}" class="form-label">
+                                                    <i class="bi bi-arrow-repeat me-1 text-primary"></i>
+                                                    {{ maj_statut_form.nouveau_statut.label }}
+                                                </label>
+                                                {{ maj_statut_form.nouveau_statut|add_class:"form-select" }}
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="{{ maj_statut_form.derniere_note_chauffeur.id_for_label }}" class="form-label">
+                                                    <i class="bi bi-chat-left-text me-1 text-info"></i>
+                                                    {{ maj_statut_form.derniere_note_chauffeur.label }}
+                                                </label>
+                                                {{ maj_statut_form.derniere_note_chauffeur|add_class:"form-control"|attr:"rows:3" }}
+                                                <small class="text-muted">Notez toute information utile sur cette livraison</small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-check-circle"></i>
+                        <h5 class="mb-2">Aucune livraison à gérer</h5>
+                        <p class="text-muted">Vous n'avez actuellement aucune livraison assignée.</p>
+                        <a href="#" class="btn btn-outline-primary mt-2">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Actualiser
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Colonne latérale - Historique -->
+            <div class="col-lg-4">
+                <h4 class="section-title">Historique Récent ({{ livraisons_terminees_recentes.count }})</h4>
+                
+                {% if livraisons_terminees_recentes %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for livraison in livraisons_terminees_recentes %}
+                                <a href="#" class="list-group-item list-group-item-action border-0 py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Livraison #{{ livraison.id }}</h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar-check me-1"></i>
+                                                {{ livraison.date_planification_fin_estimee|date:"d/m/Y H:i" }}
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-success rounded-pill">
+                                            <i class="bi bi-check2"></i> Terminée
+                                        </span>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="#" class="text-primary">Voir tout l'historique <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-clock-history"></i>
+                        <h5 class="mb-2">Aucun historique récent</h5>
+                        <p class="text-muted">Vos livraisons terminées apparaîtront ici.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion de l'affichage du motif de refus
+    document.querySelectorAll('input[name="acceptee"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            const modalId = this.closest('.modal').id;
+            const livraisonId = modalId.replace('actionModal', '');
+            const motifDiv = document.getElementById('motifRefusDiv' + livraisonId);
+            
+            if (this.value === 'False') {
+                motifDiv.style.display = 'block';
+                motifDiv.querySelector('textarea').required = true;
+            } else {
+                motifDiv.style.display = 'none';
+                motifDiv.querySelector('textarea').required = false;
+            }
+        });
+    });
+
+    // Initialisation des tooltips Bootstrap
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+
+        // Gestion des cartes d'itinéraire
+    document.querySelectorAll('[data-bs-target^="#itineraireModal"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const livraisonId = this.getAttribute('data-livraison-id');
+            const modalId = this.getAttribute('data-bs-target');
+            
+            // Quand le modal s'ouvre
+            document.querySelector(modalId).addEventListener('shown.bs.modal', function() {
+                initMap(livraisonId);
+            });
+        });
+    });
+
+// Fonction pour initialiser la carte
+function initMap(livraisonId) {
+    console.log(`Initialisation de la carte pour livraison ID: ${livraisonId}`);
+    const mapId = `map-${livraisonId}`;
+    const map = L.map(mapId).setView([33.5731, -7.5898], 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Afficher un message de chargement
+    const loadingMarker = L.marker([33.5731, -7.5898]).addTo(map)
+        .bindPopup("Chargement de l'itinéraire...").openPopup();
+
+    fetch(`/transport/api/livraison/${livraisonId}/itineraire/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Données API reçues:", data);
+            map.removeLayer(loadingMarker); // Supprimer le message de chargement
+            
+            let hasRoute = false;
+            let hasWaypoints = false;
+            
+            // 1. Tracer l'itinéraire si des coordonnées sont disponibles
+            if (data.coordinates && data.coordinates.length > 0) {
+                console.log(`Tracé de l'itinéraire avec ${data.coordinates.length} points`);
+                const latLngs = data.coordinates.map(coord => [coord[1], coord[0]]);
+                
+                L.polyline(latLngs, {
+                    color: '#3498db',
+                    weight: 5
+                }).addTo(map);
+                
+                map.fitBounds(latLngs);
+                hasRoute = true;
+            }
+            
+            // 2. Ajouter les points d'étape
+            if (data.points_etapes && data.points_etapes.length > 0) {
+                console.log(`Ajout de ${data.points_etapes.length} points d'étape`);
+                const bounds = [];
+                
+                data.points_etapes.forEach((point, index) => {
+                    // Position aléatoire autour de Casablanca si non définie
+                    const lat = point.lat || 33.5731 + (Math.random() - 0.5) * 0.1;
+                    const lon = point.lon || -7.5898 + (Math.random() - 0.5) * 0.1;
+                    
+                    L.marker([lat, lon]).addTo(map)
+                        .bindPopup(`<b>Étape ${index + 1}:</b> ${point.label}`);
+                    
+                    bounds.push([lat, lon]);
+                });
+                
+                if (!hasRoute && bounds.length > 0) {
+                    map.fitBounds(bounds);
+                }
+                hasWaypoints = true;
+            }
+            
+            // 3. Gestion des cas où aucune donnée n'est disponible
+            if (!hasRoute && !hasWaypoints) {
+                console.log("Aucune donnée d'itinéraire disponible");
+                L.marker([33.5731, -7.5898]).addTo(map)
+                    .bindPopup("Aucune donnée d'itinéraire disponible").openPopup();
+            }
+            
+            // 4. Mettre à jour le lien Google Maps
+            const openInMapsBtn = document.getElementById(`openInMaps${livraisonId}`);
+            if (hasWaypoints) {
+                const waypoints = data.points_etapes
+                    .map(p => `${p.lat || 33.5731},${p.lon || -7.5898}`)
+                    .join('|');
+                openInMapsBtn.href = `https://www.google.com/maps/dir/?api=1&travelmode=driving&waypoints=${waypoints}`;
+            } else {
+                openInMapsBtn.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Erreur API:', error);
+            map.removeLayer(loadingMarker);
+            L.marker([33.5731, -7.5898]).addTo(map)
+                .bindPopup("Erreur de chargement des données: " + error.message).openPopup();
+        });
+}
+});
+
+</script>
+{% endblock %}

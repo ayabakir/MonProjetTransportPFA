@@ -1,0 +1,337 @@
+{% load static %}
+{# {% load widget_tweaks %} ou {% load form_tags %} Si vous les utilisez ailleurs sur cette page, sinon pas nécessaire ici #}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Client - LogiTrack</title> {# Titre mis à jour #}
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root { /* Vos variables CSS */
+            --primary: #2c3e50; --secondary: #3498db; --accent: #e74c3c; --light: #ecf0f1;
+        }
+        body { 
+            padding-top: 0; /* Si la navbar n'est plus fixed-top dans ce layout dashboard */
+            display: flex; /* Pour la sidebar fixe */
+        }
+        .sidebar {
+            background: var(--primary); color: white; min-height: 100vh; /* min-height au lieu de height */
+            position: fixed; top: 0; left: 0; /* Assurer qu'elle est bien positionnée */
+            transition: all 0.3s; width: 250px; z-index: 1000;
+            padding: 1rem; /* p-3 est 1rem */
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8); padding:10px 15px; /* Ajusté padding */
+            margin-bottom: 5px; /* margin au lieu de margin: 5px 0 */
+            border-radius: 0.375rem; /* 5px est proche de .375rem de BS */
+            display: flex; /* Pour aligner icône et texte */
+            align-items: center;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.1); color: white;
+        }
+        .sidebar .nav-link i { margin-right: 12px; font-size: 1.1rem; width: 20px; text-align: center; } /* Ajusté pour icônes */
+        
+        .main-content { 
+            margin-left: 250px; padding: 25px; /* padding ajusté */
+            transition: margin-left 0.3s; width: calc(100% - 250px); /* Pour prendre le reste de la largeur */
+            min-height: 100vh; background-color: #f4f7f9; /* Fond un peu plus doux */
+        }
+        
+        .profile-dropdown { cursor: pointer; }
+        .stat-card {
+            border-radius: 0.5rem; /* 10px */
+            overflow: hidden;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); /* ombre subtile BS */
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.10); }
+        .stat-card .card-icon { font-size: 2.2rem; opacity: 0.6; }
+
+        .page-header {
+            border-bottom: 1px solid #dee2e6; /* Ligne plus subtile */
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem; /* 25px */
+        }
+        .card { /* Style de carte global */
+            border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        }
+        .btn-primary { /* Utilise les variables :root ou les couleurs BS par défaut */
+            background-color: var(--secondary); border-color: var(--secondary);
+        }
+        .btn-primary:hover { background-color: #2980b9; border-color: #2980b9; }
+        .table-hover tbody tr:hover { background-color: rgba(52, 152, 219, 0.05); }
+
+        @media (max-width: 991.98px) { /* md breakpoint est 768px, lg est 992px */
+            .sidebar {
+                width: 70px; /* Un peu plus petit pour les icônes seules */
+            }
+            .sidebar .nav-link span { display: none; }
+            .sidebar .nav-link i { margin-right: 0; font-size: 1.4rem; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); }
+        }
+    </style>
+    {% block extra_head %}{% endblock %} {# Pour des CSS spécifiques à d'autres pages héritant de base_client #}
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        
+        <div class="p-3 text-center">
+            {# --- VERSION CORRIGÉE AVEC L'ICÔNE --- #}
+            <a class="navbar-brand text-white text-decoration-none" href="{% url 'transport:dashboard_client' %}">
+                {# 1. L'icône du camion #}
+                <i class="bi bi-truck me-2" style="font-size: 1.5rem;"></i>
+
+                {# 2. Le nom de votre marque #}
+                <span class="fw-bold">TransportPremium</span><span class="fw-bold" style="color: #ffc107;">.ma</span>
+            </a>
+        </div>
+    
+            <ul class="nav flex-column px-3">
+                <!-- Le reste de vos liens de navigation -->
+            </ul>
+        
+        
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="{% url 'transport:dashboard_client' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard_client' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i> 
+                    <span>Tableau de Bord</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'transport:ajouter_commande' %}" class="nav-link {% if request.resolver_match.url_name == 'ajouter_commande' %}active{% endif %}">
+                    <i class="bi bi-plus-square-fill"></i>
+                    <span>Nouvelle Commande</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'transport:mes_commandes' %}" class="nav-link {% if request.resolver_match.url_name == 'mes_commandes' or request.resolver_match.url_name == 'modifier_commande' or request.resolver_match.url_name == 'supprimer_commande' %}active{% endif %}">
+                    <i class="bi bi-list-ul"></i>
+                    <span>Mes Commandes</span>
+                </a>
+            </li>
+          <li class="nav-item">
+    <a href="{% url 'transport:profil_client' %}" class="nav-link {% if request.resolver_match.url_name == 'profil_client' %}active{% endif %}">
+        <i class="bi bi-person-fill"></i>
+        <span>Mon Profil</span>
+    </a>
+</li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="d-flex justify-content-between align-items-center page-header bg-white p-3 mb-4 shadow-sm sticky-top">
+            <h1 class="h4 mb-0 text-primary">Tableau de Bord Client</h1>
+            
+            <div class="dropdown">
+                <div class="profile-dropdown d-flex align-items-center" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="https://ui-avatars.com/api/?name={{ user.username|slice:':1'|upper }}{{ user.last_name|slice:':1'|upper|default:'' }}&background=0D6EFD&color=fff&size=36&rounded=true&bold=true" 
+                         class="me-2" alt="Avatar">
+                    <span class="fw-semibold d-none d-md-inline me-1">{{ user.get_full_name|default:user.username }}</span>
+                    <i class="bi bi-chevron-down text-muted small"></i>
+                </div>
+                
+                <ul class="dropdown-menu dropdown-menu-end profile-menu mt-2" aria-labelledby="userMenuButton">
+                    <div class="profile-header text-center p-3 border-bottom">
+                        <img src="https://ui-avatars.com/api/?name={{ user.username|slice:':1'|upper }}{{ user.last_name|slice:':1'|upper|default:'' }}&background=0D6EFD&color=fff&size=60&rounded=true&bold=true" 
+                             class="rounded-circle mb-2" alt="Avatar">
+                        <h6 class="mb-0 fw-bold">{{ user.get_full_name|default:user.username }}</h6>
+                        <small class="text-muted">{{ user.email }}</small>
+                    </div>
+                    <li><a class="dropdown-item" href="{% url 'transport:profil_client' %}"><i class="bi bi-person-circle me-2"></i>Mon Profil</a></li>
+                    <li><hr class="dropdown-divider m-0"></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'transport:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
+                </ul>
+            </div>
+        </header>
+
+        <div class="container-fluid">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stat-card border-start border-primary border-4 h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs fw-bold text-primary text-uppercase mb-1">Commandes Actives</div>
+                                      <div class="h5 mb-0 fw-bold text-gray-800">{{ commandes_actives_count }}</div>
+                                </div>
+                                <div class="col-auto card-icon"><i class="bi bi-cart4 text-gray-300"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stat-card border-start border-success border-4 h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs fw-bold text-success text-uppercase mb-1">En Transit</div>
+                                    <div class="h5 mb-0 fw-bold text-gray-800">{{ commandes_en_transit_count }}</div>
+                                </div>
+                                <div class="col-auto card-icon"><i class="bi bi-truck-front-fill text-gray-300"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stat-card border-start border-warning border-4 h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs fw-bold text-warning text-uppercase mb-1">En Attente Validation</div>
+                                    <div class="h5 mb-0 fw-bold text-gray-800">{{ commandes_en_attente_count }}</div>
+                                </div>
+                                <div class="col-auto card-icon"><i class="bi bi-hourglass-split text-gray-300"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                     <div class="card stat-card border-start border-info border-4 h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs fw-bold text-info text-uppercase mb-1">Commandes Total</div>
+                                    <div class="h5 mb-0 fw-bold text-gray-800">{{ commandes_total_count }}</div>
+                                </div>
+                                <div class="col-auto card-icon"><i class="bi bi-archive-fill text-gray-300"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <a href="{% url 'transport:ajouter_commande' %}" class="btn btn-lg btn-primary px-4 py-2">
+                        <i class="bi bi-plus-circle-fill me-2"></i>Créer une Nouvelle Commande
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dernières Commandes -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-light">
+                    <h6 class="m-0 fw-bold text-primary">Vos 5 Dernières Commandes</h6>
+                    <a href="{% url 'transport:mes_commandes' %}" class="btn btn-sm btn-outline-primary">
+                        Voir toutes mes commandes <i class="bi bi-arrow-right-short"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if commandes_recentes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0"> {# align-middle pour centrer verticalement le contenu des cellules #}
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Référence</th>
+                                    <th>Description</th>
+                                    <th>Destination</th>
+                                    <th>Statut</th>
+                                    <th>Date Création</th>
+                                    <th class="text-center">Paiement</th> {# NOUVEL EN-TÊTE DE COLONNE #}
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for commande in commandes_recentes %}
+                                <tr>
+                                    <td><strong>{{ commande.reference_commande_or_id }}</strong></td>
+                                    <td>{{ commande.description_marchandise|truncatechars:40 }}</td>
+                                    <td>{{ commande.adresse_livraison|truncatechars:30 }}</td>
+                                    <td>
+                                        <span class="badge rounded-pill
+                                            {% if commande.statut_commande == 'livree' %}bg-success-subtle text-success-emphasis
+                                            {% elif commande.statut_commande == 'en_cours_livraison' %}bg-primary-subtle text-primary-emphasis
+                                            {% elif commande.statut_commande == 'annulee' %}bg-danger-subtle text-danger-emphasis
+                                            {% elif commande.statut_commande == 'en_attente_validation' %}bg-warning-subtle text-warning-emphasis
+                                            {% elif commande.statut_commande == 'validee' %}bg-info-subtle text-info-emphasis
+                                            {% elif commande.statut_commande == 'planifiee' %}bg-secondary-subtle text-secondary-emphasis
+                                            {% else %}bg-light text-dark{% endif %}">
+                                            {{ commande.get_statut_commande_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ commande.date_creation|date:"d M Y, H:i" }}</td>
+
+                                    {# NOUVELLE CELLULE POUR LE BOUTON DE PAIEMENT #}
+                                    <td class="text-center">
+    {% if commande.statut_commande == 'paiement_en_attente' %}
+        <a href="{% url 'a_stripe:create-checkout-session' commande.id %}" class="btn btn-success btn-sm" title="Procéder au paiement de cette commande">
+            <i class="bi bi-credit-card-fill me-1"></i> Payer
+        </a>
+    {% elif commande.statut_commande == 'payee' %}
+        <span class="badge bg-success bg-opacity-10 text-success">
+            <i class="bi bi-check-circle-fill me-1"></i> Payée
+        </span>
+    {% else %}
+        <button class="btn btn-outline-secondary btn-sm" disabled title="Paiement non requis (Statut: {{ commande.get_statut_commande_display }})">
+            <i class="bi bi-credit-card-fill me-1"></i> Payer
+        </button>
+    {% endif %}
+</td>
+
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            {% if commande.is_modifiable_ou_supprimable %}
+                                                <a href="{% url 'transport:modifier_commande' commande.id %}" class="btn btn-outline-primary" title="Modifier">
+                                                    <i class="bi bi-pencil-fill"></i>
+                                                </a>
+                                                <a href="{% url 'transport:supprimer_commande' commande.id %}" class="btn btn-outline-danger" title="Supprimer">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </a>
+                                            {% else %}
+                                                <button type="button" class="btn btn-outline-secondary" disabled title="Non modifiable (Statut: {{ commande.get_statut_commande_display }})">
+                                                    <i class="bi bi-pencil-fill"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" disabled title="Non supprimable (Statut: {{ commande.get_statut_commande_display }})">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            {% endif %}
+
+                                            <a href="{% url 'transport:commande_detail' commande.id %}" class="btn btn-outline-info" title="Voir Détails">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox-fill text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted mt-3">Vous n'avez pas encore de commandes.</h5>
+                        <p class="text-muted">Commencez par créer votre première demande de transport !</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% block javascript %}
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Initialisation des tooltips Bootstrap s'il y en a
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% endblock %}
+</body>
+</html>

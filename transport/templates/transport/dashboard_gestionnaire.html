@@ -1,0 +1,636 @@
+{% load static %}
+{% load i18n %} {# Pour la traduction future si besoin #}
+{# {% load form_tags %} Si vous prévoyez des formulaires ici avec vos filtres #}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tableau de Bord Gestionnaire - TransportPremium{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #0056b3; /* Un bleu plus profond et professionnel */
+            --secondary-color: #003d82; /* Un bleu encore plus foncé pour les dégradés */
+            --accent-color: #ff8c00; /* Un orange vif pour l'accentuation */
+            --sidebar-bg: #2c3e50; /* Bleu foncé pour la sidebar */
+            --sidebar-text: #ecf0f1;
+            --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+            --sidebar-active-bg: var(--primary-color); /* Couleur active plus distincte */
+            --sidebar-heading-text: rgba(255, 255, 255, 0.6);
+            --light-bg: #f8fafc; /* Fond général du contenu */
+            --card-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.07);
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--light-bg);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+        }
+
+        .dashboard-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar-gestionnaire {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            transition: margin-left 0.3s ease-in-out; /* Changé pour margin-left pour le toggle */
+            position: fixed;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: 1030;
+            overflow-y: auto;
+            display: flex; /* Pour le footer de la sidebar */
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-brand i {
+            color: var(--accent-color);
+            font-size: 1.75rem;
+            margin-right: 0.75rem;
+        }
+
+        .sidebar-brand-text {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-content {
+            flex-grow: 1; /* Permet au contenu de prendre l'espace et de pousser le footer en bas */
+        }
+
+        .sidebar-gestionnaire .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.85rem 1.5rem; /* Ajusté pour plus d'espace */
+            margin: 0.1rem 0.75rem;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+        }
+
+        .sidebar-gestionnaire .nav-link:hover {
+            background-color: var(--sidebar-hover-bg);
+            color: white;
+            transform: translateX(3px);
+        }
+        .sidebar-gestionnaire .nav-link.active {
+            background-color: var(--sidebar-active-bg);
+            color: white;
+            font-weight: 600;
+        }
+
+
+        .sidebar-gestionnaire .nav-link i {
+            width: 24px;
+            text-align: center;
+            margin-right: 1rem; /* Plus d'espace */
+            font-size: 1.05rem; /* Légèrement plus petit pour équilibre */
+        }
+
+        .badge-sidebar {
+            margin-left: auto; /* Pousse le badge à droite */
+            font-size: 0.75em;
+            padding: .3em .6em;
+        }
+
+        .sidebar-heading {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.075em;
+            padding: 1.25rem 1.5rem 0.5rem;
+            color: var(--sidebar-heading-text);
+            font-weight: 700;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .sidebar-footer .dropdown-menu {
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+
+        /* Main Content Styles */
+        .main-dashboard-content {
+            margin-left: 280px; /* Doit correspondre à la largeur de la sidebar */
+            width: calc(100% - 280px);
+            padding: 2rem;
+            transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+        }
+        .page-title-bar {
+            background-color: white;
+            padding: 1rem 2rem;
+            margin: -2rem -2rem 2rem -2rem; /* Pour toucher les bords */
+            border-bottom: 1px solid #e3e6f0;
+            box-shadow: var(--card-shadow);
+        }
+        .page-title-bar .breadcrumb {
+            margin-bottom: 0.25rem;
+        }
+
+
+        /* Cards */
+        .stat-card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+        .stat-card .stat-icon { font-size: 2.5rem; opacity: 0.2; }
+        .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; } /* Ajusté */
+        .stat-card .card-body { padding: 1.25rem; } /* Ajusté */
+        .stat-card h5.small { font-size: 0.8rem; } /* Ajusté */
+
+
+        /* Styles pour les Actions Rapides améliorées */
+        .quick-action-card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.15rem 1rem rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            text-align: center;
+            padding: 1.5rem 1rem;
+            height: 100%;
+            background-color: white;
+            border-top: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+            border-top-color: var(--primary-color);
+        }
+
+        .action-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-card:hover .action-icon-wrapper {
+            transform: scale(1.1);
+        }
+
+        .action-hover-indicator {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-card:hover .action-hover-indicator {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Couleurs spécifiques pour chaque carte */
+        .quick-action-card:nth-child(1):hover {
+            border-top-color: var(--primary-color);
+        }
+
+        .quick-action-card:nth-child(2):hover {
+            border-top-color: var(--success);
+        }
+
+        .quick-action-card:nth-child(3):hover {
+            border-top-color: var(--info);
+        }
+
+        .quick-action-card:nth-child(4):hover {
+            border-top-color: var(--warning);
+        }
+
+        /* Responsive - Sidebar Toggle */
+        .sidebar-gestionnaire.collapsed {
+            margin-left: -280px;
+        }
+        /* Style pour le bouton de toggle sur mobile si vous l'ajoutez */
+        #sidebarToggle {
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        #sidebarToggle:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar-gestionnaire {
+                margin-left: -280px; /* Cachée par défaut sur mobile */
+            }
+            .sidebar-gestionnaire.active { /* Classe ajoutée par JS pour afficher */
+                margin-left: 0;
+            }
+            .main-dashboard-content {
+                width: 100%;
+                margin-left: 0;
+            }
+            .page-title-bar {
+                margin-top:0; /* Ajustement pour mobile */
+            }
+        }
+
+    </style>
+    {% block extra_head_dashboard %}{% endblock %}
+</head>
+<body>
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <nav class="sidebar-gestionnaire shadow-lg" id="sidebar">
+        <div> {# Div pour le contenu scrollable de la sidebar #}
+            <a class="sidebar-brand" href="{% url 'transport:home' %}">
+                <i class="fas fa-truck-fast"></i>
+                <span class="sidebar-brand-text">TransportPremium</span>
+            </a>
+
+            <div class="sidebar-content px-2">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_gestionnaire' %}active{% endif %}" 
+                           href="{% url 'transport:dashboard_gestionnaire' %}">
+                            <i class="fas fa-tachometer-alt fa-fw"></i>
+                            <span>Tableau de bord</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-heading"><span>Commandes</span></li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'transport:liste_commandes_a_valider' %}"> {# TODO: URL pour valider commandes #}
+                            <i class="fas fa-check-to-slot fa-fw"></i>
+                            <span>Validation</span>
+                            {% if commandes_a_valider_count > 0 %}
+                            <span class="badge bg-danger badge-sidebar rounded-pill">{{ commandes_a_valider_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="sidebar-heading"><span>Planification</span></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'transport:planifier_livraison' %}"> {# TODO: URL pour planifier #}
+                            <i class="fas fa-calendar-plus fa-fw"></i>
+                            <span>Planifier Livraisons</span>
+                            {% if commandes_validees_non_planifiees_count > 0 %}
+                            <span class="badge bg-warning badge-sidebar rounded-pill text-dark">{{ commandes_validees_non_planifiees_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer mt-auto p-3">
+            <hr style="border-color: rgba(255,255,255,0.1);">
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" 
+                   id="dropdownUserSidebar" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="https://ui-avatars.com/api/?name={{ user.username|slice:':2' }}&background=ecf0f1&color=2c3e50&size=32&font-size=0.5&bold=true" 
+                         class="rounded-circle me-2" alt="Avatar">
+                    <div class="user-info">
+                        <strong class="d-block small">{{ user.get_full_name|default:user.username|truncatechars:15 }}</strong>
+                        <small style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">Gestionnaire</small>
+                    </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="dropdownUserSidebar" style="min-width: 200px;">
+                    
+                     {% if user.is_superuser %}
+                    <li><a class="dropdown-item" href="/admin/"><i class="fas fa-shield-alt fa-fw me-2"></i> Admin Django</a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.2);"></li>
+                    <li><a class="dropdown-item text-warning" href="{% url 'transport:logout' %}"><i class="fas fa-sign-out-alt fa-fw me-2"></i> Déconnexion</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-dashboard-content">
+        <!-- Top Bar avec bouton de toggle sidebar pour mobile -->
+        <div class="page-title-bar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link d-lg-none me-3 p-0" id="sidebarToggle" type="button">
+                    <i class="fas fa-bars fs-4"></i>
+                </button>
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb bg-transparent p-0 m-0 small">
+                            <li class="breadcrumb-item"><a href="{% url 'transport:dashboard_gestionnaire' %}" class="text-decoration-none">Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Aperçu Général</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h4 mb-0 fw-bold">Tableau de Bord Gestionnaire</h1>
+                </div>
+            </div>
+            <div>
+                {# Les boutons Export/Déconnexion ont été retirés d'ici comme demandé #}
+            </div>
+        </div>
+        
+        <!-- Messages Django -->
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show my-3 shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Stats Cards -->
+        
+        <!-- MONPROJETTRANSPORTPFA/transport/templates/transport/dashboard_gestionnaire.html -->
+
+{# ... (début du template, sidebar, header du contenu principal) ... #}
+
+<!-- Cartes de Statistiques Principales (Nouvelle Version) -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title text-success text-uppercase">VÉHICULES DISPONIBLES</h5>
+                        <div class="stat-value text-success">{{ vehicules_disponibles_count|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-truck stat-icon"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title text-success text-uppercase">CHAUFFEURS DISPONIBLES</h5>
+                        <div class="stat-value text-success">{{ chauffeurs_disponibles_count|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-id-badge stat-icon"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title text-primary text-uppercase">COMMANDES À AJOUTER (Planifier)</h5>
+                        <div class="stat-value text-primary">{{ commandes_a_planifier_count|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-plus-circle stat-icon"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title text-warning text-uppercase">LIVRAISONS (Attente Chargement)</h5>
+                        <div class="stat-value text-warning">{{ livraisons_attente_chargement_count|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-hourglass-start stat-icon"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row"> {# Nouvelle ligne pour les deux dernières cartes pour une meilleure mise en page si besoin #}
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title text-info text-uppercase">LIVRAISONS EN COURS</h5>
+                        <div class="stat-value text-info">{{ livraisons_en_cours_count|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-shipping-fast stat-icon"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title text-secondary text-uppercase">LIVRAISONS TERMINÉES (Auj.)</h5>
+                        <div class="stat-value text-secondary">{{ livraisons_terminees_aujourdhui_count|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-check-circle stat-icon"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ... (Reste de votre dashboard_gestionnaire.html : Actions Rapides, Listes Récentes, etc.) ... #}
+
+        <!-- Quick Actions -->
+        <<!-- Quick Actions - Version améliorée -->
+<div class="row mb-4">
+    <div class="col-12 mb-3">
+        <h4 class="h5 fw-semibold mb-3 text-primary"><i class="fas fa-bolt me-2"></i>Actions Rapides</h4>
+    </div>
+    
+    <!-- Carte 1 - Valider Commandes -->
+    <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+        <a href="{% url 'transport:liste_commandes_a_valider' %}"  class="text-decoration-none d-block h-100">
+            <div class="quick-action-card h-100">
+                <div class="action-icon-wrapper bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
+                    <i class="fas fa-check-double text-primary"></i>
+                </div>
+                <h6 class="fw-semibold mb-2">Valider Commandes</h6>
+                <p class="small text-muted mb-0">{{ commandes_a_valider_count|default:"0" }} en attente</p>
+                <div class="action-hover-indicator mt-2">
+                    <span class="small fw-bold text-primary">Cliquer pour agir <i class="fas fa-arrow-right ms-1"></i></span>
+                </div>
+            </div>
+        </a>
+    </div>
+    
+    <!-- Carte 2 - Planifier Livraisons -->
+    <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+        <a href="{% url 'transport:planifier_livraison' %}" class="text-decoration-none d-block h-100">
+            <div class="quick-action-card h-100">
+                <div class="action-icon-wrapper bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
+                    <i class="fas fa-route text-success"></i>
+                </div>
+                <h6 class="fw-semibold mb-2">Planifier Livraisons</h6>
+                <p class="small text-muted mb-0">{{ commandes_a_planifier_count|default:"0" }} à traiter</p>
+                <div class="action-hover-indicator mt-2">
+                    <span class="small fw-bold text-success">Cliquer pour agir <i class="fas fa-arrow-right ms-1"></i></span>
+                </div>
+            </div>
+        </a>
+    </div>
+            
+            
+        </div>
+
+        <!-- Recent Orders & Deliveries -->
+<!-- Recent Orders, Notes & Deliveries -->
+<div class="row">
+
+    <!-- Colonne 1 : Commandes à Valider -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header py-3" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 fw-semibold"><i class="fas fa-check-double me-2"></i>Commandes à Valider</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if dernieres_commandes_a_valider %}
+                    <div class="list-group list-group-flush">
+                        {% for commande in dernieres_commandes_a_valider %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="fw-bold">{{ commande.reference_commande|default:commande.id }}</div>
+                            <small class="text-muted">Client: {{ commande.client.user.username }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted"><p>Aucune commande à valider.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Colonne 2 : Communications Récentes (NOUVEAU BLOC) -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header py-3 bg-warning text-dark">
+                <h6 class="m-0 fw-semibold"><i class="fas fa-comments me-2"></i>Communications Récentes</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if notes_recentes %}
+                    <div class="list-group list-group-flush">
+                        {% for note_suivi in notes_recentes %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Livraison #{{ note_suivi.livraison.id }}</h6>
+                                <small class="text-muted">{{ note_suivi.timestamp_evenement|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1 fst-italic">"{{ note_suivi.notes_evenement|truncatechars:100 }}"</p>
+                            <small class="text-muted">Par : {{ note_suivi.livraison.chauffeur.user.get_full_name|default:note_suivi.livraison.chauffeur.user.username }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                        <p>Aucune nouvelle note de chauffeur.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Colonne 3 : Livraisons en Cours (BLOC RESTAURÉ) -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header py-3 bg-info text-white">
+                <h6 class="m-0 fw-semibold"><i class="fas fa-route me-2"></i>Livraisons en Cours</h6>
+            </div>
+            <div class="card-body p-0">
+                 {% if dernieres_livraisons_en_cours %}
+                    <div class="list-group list-group-flush">
+                        {% for livraison in dernieres_livraisons_en_cours %}
+                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">Livraison #{{ livraison.id }}</div>
+                                <small class="text-muted">{{ livraison.chauffeur.user.username }} • {{ livraison.vehicule.immatriculation }}</small>
+                            </div>
+                            <span class="badge bg-light text-dark rounded-pill">{{ livraison.get_statut_livraison_display }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-truck-loading fa-3x mb-3"></i>
+                        <p>Aucune livraison en cours actuellement.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- FIN DU NOUVEAU BLOC -->
+
+
+
+
+
+
+
+        </div>
+
+    </div> <!-- Fin de .main-dashboard-content -->
+</div> <!-- Fin de .dashboard-wrapper -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed'); // Vous devrez définir le style pour .collapsed
+                                                      // par exemple : .sidebar-gestionnaire.collapsed { margin-left: -280px; }
+                                                      // ou une autre logique pour la cacher/réduire
+            });
+        }
+
+        // Activer les tooltips Bootstrap si vous en utilisez
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
