@@ -480,7 +480,7 @@ def dashboard_gestionnaire_view(request):
         notes_evenement__isnull=True
     ).exclude(
         notes_evenement__exact=''
-    ).select_related('livraison', 'livraison__chauffeur__user').order_by('-timestamp_evenement')[:5]
+    ).select_related('livraison', 'livraison_chauffeur_user').order_by('-timestamp_evenement')[:5]
 
     context = {
         'user': request.user,
@@ -556,7 +556,7 @@ def profil_client_view(request):
             
             user_form.save()
             # client_form.save() est appelé, il prendra en compte le nouveau fichier 
-            # de request.FILES ou le champ vidé par `client.photo_profil = None`.
+            # de request.FILES ou le champ vidé par client.photo_profil = None.
             client_form.save()
             
             messages.success(request, 'Votre profil a été mis à jour !')
@@ -995,7 +995,7 @@ def commande_detail(request, pk):
     except Exception as e:
         # Loguer l'erreur pour le débogage
         import logging
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger(_name_)
         logger.error(f"Erreur dans detail_commande: {str(e)}")
         
         messages.error(request, "Une erreur est survenue lors de l'accès aux détails de la commande.")

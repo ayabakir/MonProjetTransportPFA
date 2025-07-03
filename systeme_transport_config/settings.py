@@ -1,33 +1,35 @@
-# systeme_transport_config/settings.py
-
 from pathlib import Path
 import os
-from environ import Env  # Nous gardons uniquement django-environ
-
-# Initialisation de django-environ au début du fichier
+from dotenv import load_dotenv
+from environ import Env
 env = Env()
-Env.read_env(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
+env.read_env()
 
-# --- CONFIGURATION DE BASE ---
+BASE_URL = "http://localhost:8000"
+
+
+ORS_API_KEY = os.getenv('ORS_API_KEY')
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_URL = "http://localhost:8000" # Cette variable sera peut-être à revoir si vous l'utilisez pour des URLs absolues
 
-# --- CLÉS SECRÈTES ET VARIABLES D'ENVIRONNEMENT ---
-# MODIFIÉ POUR PRODUCTION : La clé secrète est maintenant chargée depuis les variables d'environnement
-SECRET_KEY = env('DJANGO_SECRET_KEY')
+load_dotenv(os.path.join(BASE_DIR, '.env')) #jh
+# Ou si vous utilisez python-dotenv
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+print(f"--- DEBUG SETTINGS: La clé secrète lue est : '{STRIPE_SECRET_KEY}' ---") # <--- AJOUTEZ CETTE LIGNE
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-ORS_API_KEY = env('ORS_API_KEY', default='votre_valeur_par_defaut_si_besoin')
-STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY_TEST') # On garde la version propre avec env()
-STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET')
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-s@js#x@dvy%*lt!fg#vo@64_=5x3b&&itffcj2aab_u%!b+fws'
 
-# --- CONFIGURATION DE DÉPLOIEMENT ---
-# MODIFIÉ POUR PRODUCTION : DEBUG est False pour la sécurité
-DEBUG = False
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 
-# MODIFIÉ POUR PRODUCTION : Remplacez 'ayaba' par votre nom d'utilisateur PythonAnywhere
-ALLOWED_HOSTS = ['Ayaba.pythonanywhere.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = []
 
-# --- APPLICATIONS ET MIDDLEWARE ---
+
+# Application definition
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,10 +44,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', # <--- ICI
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware', # <--- APRES SessionMiddleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -70,7 +72,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'systeme_transport_config.wsgi.application'
 
-# --- BASE DE DONNÉES ---
+
+# Database
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -78,34 +83,65 @@ DATABASES = {
     }
 }
 
-# --- VALIDATION DE MOTS DE PASSE ---
+
+# Password validation
+# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
-# --- INTERNATIONALISATION ---
-LANGUAGE_CODE = 'fr-fr' # Changé pour le français, à adapter si besoin
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = 'UTC'
+
 USE_I18N = True
+
 USE_TZ = True
 
-# --- FICHIERS STATIQUES ET MÉDIAS ---
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
+
 STATIC_URL = 'static/'
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-# AJOUTÉ POUR PRODUCTION : Indispensable pour la commande collectstatic
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Dans settings.py
+ADRESSE_DEPOT_PRINCIPAL = "Km 8 Route d'El Jadida, Lissasfa, Casablanca, Maroc" # METTEZ UNE VRAIE ADRESSE TESTABLE
+# Le prix de base pour toute commande, indépendamment du poids ou de la distance.
+PRIX_BASE = 25.00  # Exemple : 25 MAD
+
+# Le prix additionnel par kilogramme.
+PRIX_PAR_KG = 2.50  # Exemple : 2.50 MAD par kg
+
+# Le prix additionnel par kilomètre.
+PRIX_PAR_KM = 3.00  # Exemple : 3.00 MAD par km
+
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY_TEST', default="secret")
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default="webhook")
+
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # Typo corrigée
-
-# --- CONFIGURATIONS MÉTIER ---
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-ADRESSE_DEPOT_PRINCIPAL = "Km 8 Route d'El Jadida, Lissasfa, Casablanca, Maroc"
-PRIX_BASE = 25.00
-PRIX_PAR_KG = 2.50
-PRIX_PAR_KM = 3.00
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

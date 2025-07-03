@@ -2,43 +2,65 @@
 import stripe
 import os # <--- AJOUT IMPORTANT
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from transport.models import Commande
-from django.urls import path, reverse
 
 
 def create_checkout_session(request, commande_id):
-    commande = get_object_or_404(Commande, id=commande_id)
+    """
+    Cette vue crée la session de paiement Stripe et redirige l'utilisateur.
+    """
+    # === LA SOLUTION ULTIME ===
+    # On ignore settings et on lit la clé DIRECTEMENT depuis les variables d'environnement.
+    # C'est la méthode la plus directe et la plus sûre.
+    stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-    # On définit le domaine de notre site en production
-    YOUR_DOMAIN = 'https://ayaba.pythonanywhere.com'
+    # --- DEBUG POUR VÉRIFIER ---
+    # Cette ligne est notre test final.
+    print(f"--- DEBUG FINAL: Clé lue directement depuis l'environnement : '{stripe.api_key}' ---")
+    if not stripe.api_key:
+        return HttpResponse("ERREUR CRITIQUE : La variable STRIPE_SECRET_KEY est vide ou n'est pas trouvée dans l'environnement. Vérifiez votre fichier .env et redémarrez le serveur.", status=500)
+
+
+    # 1. Récupérer la commande
+    commande = get_object_or_404(Commande, pk=commande_id)
+
+    # 2. Vérifier le montant
+    if not commande.montant_total or commande.montant_total <= 0:
+        return HttpResponse("Erreur : Le montant de la commande n'est pas valide.", status=400)
+
+    # 3. Convertir en centimes
+    montant_en_centimes = int(commande.montant_total * 100)
+
+    # 4. URLs
+    YOUR_DOMAIN = "https://ayaba.pythonanywhere.com"
+    success_url = YOUR_DOMAIN + '/paiement/success/'
+    cancel_url = YOUR_DOMAIN + '/paiement/cancel/'
 
     try:
+        # 5. Créer la session Stripe
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'mad', # ou 'eur', etc.
-                        'product_data': {
-                            'name': f'Paiement pour commande #{commande.id}',
-                        },
-                        'unit_amount': int(commande.montant_total * 100),
+            line_items=[{
+                'price_data': {
+                    'currency': 'mad',
+                    'unit_amount': montant_en_centimes,
+                    'product_data': {
+                        'name': f'Paiement pour Commande #{commande.reference_commande_or_id()}',
+                        'description': commande.description_marchandise,
                     },
-                    'quantity': 1,
                 },
-            ],
+                'quantity': 1,
+            }],
             mode='payment',
-            
-            # On construit les URLs complètes pour la redirection
-            success_url=YOUR_DOMAIN + reverse('a_stripe:payment-success'),
-            cancel_url=YOUR_DOMAIN + reverse('a_stripe:payment-cancel'),
+            success_url=success_url + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=cancel_url,
+            metadata={'commande_id': commande.id}
         )
-        # On renvoie l'ID de la session au JavaScript côté client
-        return JsonResponse({'id': checkout_session.id})
+        return HttpResponseRedirect(checkout_session.url)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return HttpResponse(f"Erreur lors de la création de la session de paiement : {e}", status=500)
 
 
 def payment_success(request):
@@ -47,22 +69,3 @@ def payment_success(request):
 
 def payment_cancel(request):
     return render(request, 'a_stripe/payment_cancel.html')
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        # Invalid payload
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        return HttpResponse(status=400)
-
-    # Handle the event (e.g., payment succeeded)
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
