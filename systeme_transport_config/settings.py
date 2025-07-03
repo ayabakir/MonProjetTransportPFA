@@ -25,7 +25,7 @@ STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET')
 DEBUG = False
 
 # MODIFIÉ POUR PRODUCTION : Remplacez 'ayaba' par votre nom d'utilisateur PythonAnywhere
-ALLOWED_HOSTS = ['ayaba.pythonanywhere.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['Ayaba.pythonanywhere.com', '127.0.0.1', 'localhost']
 
 # --- APPLICATIONS ET MIDDLEWARE ---
 INSTALLED_APPS = [
