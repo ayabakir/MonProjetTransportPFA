@@ -14,5 +14,5 @@ urlpatterns = [
     path('cancel/', views.payment_cancel, name='payment-cancel'),
     
     # Ajoutez ici plus tard l'URL pour le webhook
-    # path('webhook/', views.stripe_webhook, name='stripe-webhook'),
+    path('webhook/', views.stripe_webhook, name='stripe-webhook'),
 ]
