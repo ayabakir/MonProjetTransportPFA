@@ -46,3 +46,22 @@ def payment_success(request):
 
 def payment_cancel(request):
     return render(request, 'a_stripe/payment_cancel.html')
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return HttpResponse(status=400)
+
+    # Handle the event (e.g., payment succeeded)
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
